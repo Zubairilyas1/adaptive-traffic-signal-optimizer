@@ -146,6 +146,40 @@ def run_on_video(
             writer.close()
 
     duration = (last_idx / fps) if (fps and fps > 0) else float(n * stride)
+    
+    # Automatically persist session telemetry & actuation events to SQLite
+    try:
+        from src.db.database import log_actuation_event, log_telemetry_batch
+        inter_id = intersection.id if intersection else "default_intersection"
+        telemetry_rows = []
+        for snap in kinematic_counter.timeline_history:
+            for app, h_pcu in snap.approach_halted_pcu.items():
+                f_pcu = snap.approach_flowing_pcu.get(app, 0.0) if hasattr(snap, "approach_flowing_pcu") else 0.0
+                q_m = snap.approach_queue_m.get(app, 0.0) if hasattr(snap, "approach_queue_m") else 0.0
+                telemetry_rows.append({
+                    "intersection_id": inter_id,
+                    "timestamp": snap.timestamp,
+                    "approach": app,
+                    "halted_pcu": h_pcu,
+                    "flowing_pcu": f_pcu,
+                    "queue_length_m": q_m,
+                })
+        log_telemetry_batch(telemetry_rows)
+        if actuator is not None:
+            for e in actuator.events_log:
+                log_actuation_event(
+                    intersection_id=inter_id,
+                    timestamp=e.timestamp,
+                    from_phase=e.from_phase,
+                    to_phase=e.to_phase,
+                    aspect=e.aspect.value.upper() if hasattr(e.aspect, "value") else str(e.aspect),
+                    reason=e.reason.name if hasattr(e.reason, "name") else str(e.reason),
+                    message=e.message,
+                    waiting_queue_pcu=e.waiting_queue_pcu,
+                )
+    except Exception:
+        pass
+
     counts = ClipCounts(
         lane_counts=counter.counts_by_lane(),
         approach_counts=counter.counts_by_approach(),

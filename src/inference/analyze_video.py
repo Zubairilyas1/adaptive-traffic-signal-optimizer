@@ -57,10 +57,43 @@ def _finalise(
     duration_s: float,
     kinematic_counter: Optional[Any] = None,
     actuator: Optional[Any] = None,
+    intersection_id: str = "default_intersection",
 ) -> ClipCounts:
     snapshots = kinematic_counter.timeline_history if kinematic_counter is not None else []
     act_history = actuator.state_history if actuator is not None else []
     act_events = actuator.events_log if actuator is not None else []
+
+    # Automatically persist telemetry & actuation decisions to SQLite
+    try:
+        from src.db.database import log_actuation_event, log_telemetry_batch
+        records = []
+        for snap in snapshots:
+            for app, h_pcu in snap.approach_halted_pcu.items():
+                f_pcu = snap.approach_flowing_pcu.get(app, 0.0) if hasattr(snap, "approach_flowing_pcu") else 0.0
+                q_m = snap.approach_queue_m.get(app, 0.0) if hasattr(snap, "approach_queue_m") else 0.0
+                records.append({
+                    "intersection_id": intersection_id,
+                    "timestamp": snap.timestamp,
+                    "approach": app,
+                    "halted_pcu": h_pcu,
+                    "flowing_pcu": f_pcu,
+                    "queue_length_m": q_m,
+                })
+        log_telemetry_batch(records)
+        for e in act_events:
+            log_actuation_event(
+                intersection_id=intersection_id,
+                timestamp=e.timestamp,
+                from_phase=e.from_phase,
+                to_phase=e.to_phase,
+                aspect=e.aspect.value.upper() if hasattr(e.aspect, "value") else str(e.aspect),
+                reason=e.reason.name if hasattr(e.reason, "name") else str(e.reason),
+                message=e.message,
+                waiting_queue_pcu=e.waiting_queue_pcu,
+            )
+    except Exception:
+        pass
+
     return ClipCounts(
         lane_counts=counter.counts_by_lane(),
         approach_counts=counter.counts_by_approach(),

@@ -18,6 +18,10 @@ runs/
 data/raw/
 data/processed/
 data/external/
+data/violations/
+*.db
+*.db-wal
+*.db-shm
 models/*.pt
 models/*.onnx
 models/*.engine
