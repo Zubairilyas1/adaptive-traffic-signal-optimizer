@@ -1,0 +1,42 @@
+{
+  "tag": "coco_baseline",
+  "weights": "models\\yolov8n.pt",
+  "data": "data\\processed\\coco_eval\\data_coco.yaml",
+  "split": "test",
+  "map50": 0.7266183052035037,
+  "map50_95": 0.549158458763167,
+  "per_class": [
+    {
+      "class_id": 2,
+      "name": "car",
+      "ap50": 0.656896818341582,
+      "ap50_95": 0.5080929215915307
+    },
+    {
+      "class_id": 3,
+      "name": "motorcycle",
+      "ap50": 0.6595127188407988,
+      "ap50_95": 0.3909011285087664
+    },
+    {
+      "class_id": 5,
+      "name": "bus",
+      "ap50": 0.9014214537179197,
+      "ap50_95": 0.7548365718147119
+    },
+    {
+      "class_id": 7,
+      "name": "truck",
+      "ap50": 0.688642229913714,
+      "ap50_95": 0.5428032131376591
+    }
+  ],
+  "focus_classes": [
+    2,
+    3,
+    5,
+    7
+  ],
+  "focus_map50": 0.7266183052035036,
+  "focus_map50_95": 0.549158458763167
+}

@@ -1,0 +1,252 @@
+{
+  "coco": {
+    "tag": "coco_baseline",
+    "weights": "models\\yolov8n.pt",
+    "data": "data\\processed\\coco_eval\\data_coco.yaml",
+    "split": "test",
+    "map50": 0.7266183052035037,
+    "map50_95": 0.549158458763167,
+    "per_class": [
+      {
+        "class_id": 2,
+        "name": "car",
+        "ap50": 0.656896818341582,
+        "ap50_95": 0.5080929215915307
+      },
+      {
+        "class_id": 3,
+        "name": "motorcycle",
+        "ap50": 0.6595127188407988,
+        "ap50_95": 0.3909011285087664
+      },
+      {
+        "class_id": 5,
+        "name": "bus",
+        "ap50": 0.9014214537179197,
+        "ap50_95": 0.7548365718147119
+      },
+      {
+        "class_id": 7,
+        "name": "truck",
+        "ap50": 0.688642229913714,
+        "ap50_95": 0.5428032131376591
+      }
+    ],
+    "focus_classes": [
+      2,
+      3,
+      5,
+      7
+    ],
+    "focus_map50": 0.7266183052035036,
+    "focus_map50_95": 0.549158458763167
+  },
+  "finetuned": {
+    "tag": "finetuned",
+    "weights": "models\\yolov8n_traffic_best.pt",
+    "data": "data\\processed\\traffic\\data.yaml",
+    "split": "test",
+    "map50": 0.9443552250210558,
+    "map50_95": 0.7815609554855261,
+    "per_class": [
+      {
+        "class_id": 0,
+        "name": "car",
+        "ap50": 0.9322668882457407,
+        "ap50_95": 0.7771725262986428
+      },
+      {
+        "class_id": 1,
+        "name": "motorcycle",
+        "ap50": 0.9019774957063503,
+        "ap50_95": 0.5793348094168935
+      },
+      {
+        "class_id": 2,
+        "name": "autorickshaw",
+        "ap50": 0.9764409587036118,
+        "ap50_95": 0.8297092303688594
+      },
+      {
+        "class_id": 3,
+        "name": "van",
+        "ap50": 0.9572290156722596,
+        "ap50_95": 0.9109947385065393
+      },
+      {
+        "class_id": 4,
+        "name": "tractor",
+        "ap50": 0.9535719157061993,
+        "ap50_95": 0.7481711684488568
+      },
+      {
+        "class_id": 5,
+        "name": "bus",
+        "ap50": 0.9740503125482928,
+        "ap50_95": 0.8619698057742242
+      },
+      {
+        "class_id": 6,
+        "name": "truck",
+        "ap50": 0.9149499885649363,
+        "ap50_95": 0.7635744095846668
+      }
+    ]
+  },
+  "count": {
+    "images": 805,
+    "gt_boxes": 1429,
+    "pred_boxes": 1663,
+    "mae": 0.3950310559006211,
+    "rmse": 0.9918926008782496,
+    "bias": 0.2906832298136646,
+    "exact_match_pct": 74.78260869565217
+  },
+  "ablation": {
+    "window_s": 274.5,
+    "naive": {
+      "flow_p1": 1639.344262295082,
+      "flow_p2": 760.655737704918,
+      "cycle": 46.14285714285714,
+      "green": {
+        "P1": 26.05386416861827,
+        "P2": 12.088992974238876
+      },
+      "avg_delay": 12.35454242198323
+    },
+    "pcu": {
+      "flow_p1": 1409.8360655737704,
+      "flow_p2": 1042.622950819672,
+      "cycle": 47.93917274939172,
+      "green": {
+        "P1": 22.959684869302727,
+        "P2": 16.979487880088993
+      },
+      "avg_delay": 14.012972292495327
+    },
+    "green_p1_difference_s": 3.0941792993155417
+  },
+  "synthetic": {
+    "tag": "synthetic",
+    "mode": "synthetic",
+    "approach_counts": {
+      "A": {
+        "car": 70,
+        "motorcycle": 45,
+        "autorickshaw": 10
+      },
+      "B": {
+        "car": 35,
+        "bus": 4,
+        "truck": 6,
+        "motorcycle": 10,
+        "van": 3
+      }
+    },
+    "pcu_by_approach": {
+      "A": 107.5,
+      "B": 79.5
+    },
+    "flows_by_phase_pcu_h": {
+      "P1": 1409.8360655737704,
+      "P2": 1042.622950819672
+    },
+    "plan": {
+      "cycle": 47.93917274939172,
+      "green": {
+        "P1": 22.959684869302727,
+        "P2": 16.979487880088993
+      },
+      "Y": 0.6453839516824849,
+      "oversaturated": false
+    },
+    "delay": {
+      "fixed_avg_s": 20.635829079503452,
+      "optimized_avg_s": 14.012972292495327,
+      "reduction_pct": 32.093969965986396
+    }
+  },
+  "domain_gap": {
+    "clip": "external: subek-yolo/pakistan traffic (test split)",
+    "images_sampled": 60,
+    "mean_detections_per_image": 2.533333333333333,
+    "class_distribution": {
+      "bus": 28,
+      "autorickshaw": 17,
+      "car": 69,
+      "truck": 26,
+      "motorcycle": 9,
+      "tractor": 2,
+      "van": 1
+    },
+    "note": "Qualitative only: external labels have garbled class names, so no mAP. Confirms the model still detects vehicles on local footage; magnitude of the domain gap must be quantified with hand-labelled local data."
+  },
+  "rl": {
+    "normal": [
+      {
+        "controller": "Fixed-Time",
+        "runs": 2,
+        "avg_queue": 43.916,
+        "total_wait": 129688.5,
+        "throughput": 197.0,
+        "avg_delay": 658.472
+      },
+      {
+        "controller": "Rule-Based",
+        "runs": 2,
+        "avg_queue": 49.646,
+        "total_wait": 55616.5,
+        "throughput": 166.0,
+        "avg_delay": 335.57
+      },
+      {
+        "controller": "PPO",
+        "runs": 2,
+        "avg_queue": 47.092,
+        "total_wait": 40993.5,
+        "throughput": 147.5,
+        "avg_delay": 278.996
+      }
+    ],
+    "stress": [
+      {
+        "controller": "Fixed-Time",
+        "runs": 2,
+        "avg_queue": 22.236,
+        "total_wait": 63949.0,
+        "throughput": 136.0,
+        "avg_delay": 472.832
+      },
+      {
+        "controller": "Rule-Based",
+        "runs": 2,
+        "avg_queue": 14.595,
+        "total_wait": 15890.0,
+        "throughput": 147.5,
+        "avg_delay": 107.763
+      },
+      {
+        "controller": "PPO",
+        "runs": 2,
+        "avg_queue": 13.797,
+        "total_wait": 11062.5,
+        "throughput": 113.5,
+        "avg_delay": 97.608
+      }
+    ],
+    "ppo_delay_reduction_normal_pct": 57.629785321167795,
+    "ppo_delay_reduction_stress_pct": 79.35672712506768,
+    "normal_demand": {
+      "N": 1600,
+      "S": 1400,
+      "E": 900,
+      "W": 800
+    },
+    "stress_demand": {
+      "N": 2400,
+      "S": 400,
+      "E": 600,
+      "W": 300
+    }
+  }
+}

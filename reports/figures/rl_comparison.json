@@ -1,0 +1,68 @@
+{
+  "normal": [
+    {
+      "controller": "Fixed-Time",
+      "runs": 2,
+      "avg_queue": 43.916,
+      "total_wait": 129688.5,
+      "throughput": 197.0,
+      "avg_delay": 658.472
+    },
+    {
+      "controller": "Rule-Based",
+      "runs": 2,
+      "avg_queue": 49.646,
+      "total_wait": 55616.5,
+      "throughput": 166.0,
+      "avg_delay": 335.57
+    },
+    {
+      "controller": "PPO",
+      "runs": 2,
+      "avg_queue": 47.092,
+      "total_wait": 40993.5,
+      "throughput": 147.5,
+      "avg_delay": 278.996
+    }
+  ],
+  "stress": [
+    {
+      "controller": "Fixed-Time",
+      "runs": 2,
+      "avg_queue": 22.236,
+      "total_wait": 63949.0,
+      "throughput": 136.0,
+      "avg_delay": 472.832
+    },
+    {
+      "controller": "Rule-Based",
+      "runs": 2,
+      "avg_queue": 14.595,
+      "total_wait": 15890.0,
+      "throughput": 147.5,
+      "avg_delay": 107.763
+    },
+    {
+      "controller": "PPO",
+      "runs": 2,
+      "avg_queue": 13.797,
+      "total_wait": 11062.5,
+      "throughput": 113.5,
+      "avg_delay": 97.608
+    }
+  ],
+  "ppo_delay_reduction_normal_pct": 57.629785321167795,
+  "ppo_delay_reduction_stress_pct": 79.35672712506768,
+  "normal_demand": {
+    "N": 1600,
+    "S": 1400,
+    "E": 900,
+    "W": 800
+  },
+  "stress_demand": {
+    "N": 2400,
+    "S": 400,
+    "E": 600,
+    "W": 300
+  }
+}

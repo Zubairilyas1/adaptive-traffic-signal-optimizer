@@ -1,0 +1,15 @@
+{
+  "clip": "external: subek-yolo/pakistan traffic (test split)",
+  "images_sampled": 60,
+  "mean_detections_per_image": 2.533333333333333,
+  "class_distribution": {
+    "bus": 28,
+    "autorickshaw": 17,
+    "car": 69,
+    "truck": 26,
+    "motorcycle": 9,
+    "tractor": 2,
+    "van": 1
+  },
+  "note": "Qualitative only: external labels have garbled class names, so no mAP. Confirms the model still detects vehicles on local footage; magnitude of the domain gap must be quantified with hand-labelled local data."
+}
