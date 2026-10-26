@@ -1,0 +1,40 @@
+# Virtual environment
+.venv/
+.build/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Ultralytics training runs
+runs/
+*.cache
+
+# Datasets and large artefacts
+data/raw/
+data/processed/
+data/external/
+models/*.pt
+models/*.onnx
+models/*.engine
+reports/figures/*.jpg
+*.zip
+kaggle/*.zip
+*.webm
+sim/tripinfo*.xml
+
+# Secrets
+.env
+*.key
+kaggle.json
+
+# OS / editor
+~$*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
