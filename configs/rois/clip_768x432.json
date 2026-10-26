@@ -1,0 +1,11 @@
+{
+  "frame_width": 768,
+  "frame_height": 432,
+  "comment": "Demo ROIs for the public 768x432 traffic clips (data/samples/street_clip.mp4).",
+  "lanes": [
+    { "lane_id": "A1", "approach": "A", "polygon": [[20, 235], [190, 235], [190, 425], [20, 425]] },
+    { "lane_id": "A2", "approach": "A", "polygon": [[200, 235], [370, 235], [370, 425], [200, 425]] },
+    { "lane_id": "B1", "approach": "B", "polygon": [[390, 235], [560, 235], [560, 425], [390, 425]] },
+    { "lane_id": "B2", "approach": "B", "polygon": [[570, 235], [745, 235], [745, 425], [570, 425]] }
+  ]
+}

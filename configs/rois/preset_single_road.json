@@ -1,0 +1,11 @@
+{
+  "frame_width": 1280,
+  "frame_height": 720,
+  "comment": "1-Way Highway / Corridor: 3 parallel lanes with continuous flow monitoring.",
+  "topology": "single_road",
+  "lanes": [
+    { "lane_id": "Main_Left", "approach": "Main", "polygon": [[100, 360], [420, 360], [420, 700], [100, 700]] },
+    { "lane_id": "Main_Center", "approach": "Main", "polygon": [[440, 360], [840, 360], [840, 700], [440, 700]] },
+    { "lane_id": "Main_Right", "approach": "Main", "polygon": [[860, 360], [1180, 360], [1180, 700], [860, 700]] }
+  ]
+}

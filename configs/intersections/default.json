@@ -1,0 +1,17 @@
+{
+  "name": "demo-2phase",
+  "comment": "Two-phase intersection: A (North-South) and B (East-West).",
+  "approaches": [
+    { "id": "A", "label": "North-South", "lanes": 2 },
+    { "id": "B", "label": "East-West", "lanes": 2 }
+  ],
+  "phases": [
+    { "id": "P1", "approach": "A" },
+    { "id": "P2", "approach": "B" }
+  ],
+  "lost_time_per_phase": 4.0,
+  "fixed_plan": {
+    "cycle": 90.0,
+    "green": { "P1": 42.0, "P2": 42.0 }
+  }
+}

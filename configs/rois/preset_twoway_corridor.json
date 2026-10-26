@@ -1,0 +1,12 @@
+{
+  "frame_width": 1280,
+  "frame_height": 720,
+  "comment": "Two-Way Corridor: Northbound and Southbound dual-direction traffic.",
+  "topology": "twoway_corridor",
+  "lanes": [
+    { "lane_id": "North_L1", "approach": "North", "polygon": [[80, 360], [340, 360], [340, 700], [80, 700]] },
+    { "lane_id": "North_L2", "approach": "North", "polygon": [[360, 360], [620, 360], [620, 700], [360, 700]] },
+    { "lane_id": "South_L1", "approach": "South", "polygon": [[660, 360], [920, 360], [920, 700], [660, 700]] },
+    { "lane_id": "South_L2", "approach": "South", "polygon": [[940, 360], [1200, 360], [1200, 700], [940, 700]] }
+  ]
+}

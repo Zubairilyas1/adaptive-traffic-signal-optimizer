@@ -1,0 +1,20 @@
+{
+  "name": "fourway-crossroad",
+  "comment": "Full 4-Way intersection with North-South and East-West crossing phases.",
+  "topology": "fourway_crossroad",
+  "approaches": [
+    { "id": "North", "label": "North Approach", "lanes": 2 },
+    { "id": "South", "label": "South Approach", "lanes": 2 },
+    { "id": "East", "label": "East Approach", "lanes": 2 },
+    { "id": "West", "label": "West Approach", "lanes": 2 }
+  ],
+  "phases": [
+    { "id": "P1", "approach": "North" },
+    { "id": "P2", "approach": "East" }
+  ],
+  "lost_time_per_phase": 4.0,
+  "fixed_plan": {
+    "cycle": 100.0,
+    "green": { "P1": 46.0, "P2": 46.0 }
+  }
+}

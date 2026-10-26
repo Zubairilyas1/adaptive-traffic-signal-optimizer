@@ -1,0 +1,12 @@
+{
+  "frame_width": 1280,
+  "frame_height": 720,
+  "comment": "Full 4-Way Crossroad: North, South, East, West multi-approach layout.",
+  "topology": "fourway_crossroad",
+  "lanes": [
+    { "lane_id": "North_Through", "approach": "North", "polygon": [[80, 420], [340, 420], [340, 700], [80, 700]] },
+    { "lane_id": "South_Through", "approach": "South", "polygon": [[360, 420], [620, 420], [620, 700], [360, 700]] },
+    { "lane_id": "East_Through", "approach": "East", "polygon": [[660, 420], [920, 420], [920, 700], [660, 700]] },
+    { "lane_id": "West_Through", "approach": "West", "polygon": [[940, 420], [1200, 420], [1200, 700], [940, 700]] }
+  ]
+}

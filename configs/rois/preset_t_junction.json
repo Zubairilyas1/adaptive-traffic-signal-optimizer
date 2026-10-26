@@ -1,0 +1,11 @@
+{
+  "frame_width": 1280,
+  "frame_height": 720,
+  "comment": "3-Way T-Junction: East-West mainline priority + North branch side-street.",
+  "topology": "t_junction",
+  "lanes": [
+    { "lane_id": "East_L1", "approach": "Main_EW", "polygon": [[100, 420], [480, 420], [480, 700], [100, 700]] },
+    { "lane_id": "West_L1", "approach": "Main_EW", "polygon": [[520, 420], [900, 420], [900, 700], [520, 700]] },
+    { "lane_id": "Side_N_L1", "approach": "Side_N", "polygon": [[940, 360], [1220, 360], [1220, 700], [940, 700]] }
+  ]
+}

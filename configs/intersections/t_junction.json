@@ -1,0 +1,18 @@
+{
+  "name": "t-junction",
+  "comment": "3-Way T-Junction: Main East-West corridor with North side-street demand actuation.",
+  "topology": "t_junction",
+  "approaches": [
+    { "id": "Main_EW", "label": "East-West Mainline", "lanes": 2 },
+    { "id": "Side_N", "label": "North Side Street", "lanes": 1 }
+  ],
+  "phases": [
+    { "id": "P1", "approach": "Main_EW" },
+    { "id": "P2", "approach": "Side_N" }
+  ],
+  "lost_time_per_phase": 4.0,
+  "fixed_plan": {
+    "cycle": 90.0,
+    "green": { "P1": 55.0, "P2": 27.0 }
+  }
+}

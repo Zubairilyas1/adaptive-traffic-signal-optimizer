@@ -1,0 +1,16 @@
+{
+  "name": "single-road-corridor",
+  "comment": "One-way highway / single road corridor with 3 lanes. No cross-traffic stopping.",
+  "topology": "single_road",
+  "approaches": [
+    { "id": "Main", "label": "Main Corridor", "lanes": 3 }
+  ],
+  "phases": [
+    { "id": "P1", "approach": "Main" }
+  ],
+  "lost_time_per_phase": 0.0,
+  "fixed_plan": {
+    "cycle": 60.0,
+    "green": { "P1": 60.0 }
+  }
+}

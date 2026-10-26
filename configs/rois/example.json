@@ -1,0 +1,27 @@
+{
+  "frame_width": 1280,
+  "frame_height": 720,
+  "comment": "Example lane ROIs for a 1280x720 frame. Replace with ROIs drawn on your own footage.",
+  "lanes": [
+    {
+      "lane_id": "A1",
+      "approach": "A",
+      "polygon": [[40, 430], [420, 430], [420, 700], [40, 700]]
+    },
+    {
+      "lane_id": "A2",
+      "approach": "A",
+      "polygon": [[440, 430], [820, 430], [820, 700], [440, 700]]
+    },
+    {
+      "lane_id": "B1",
+      "approach": "B",
+      "polygon": [[840, 430], [1240, 430], [1240, 700], [840, 700]]
+    },
+    {
+      "lane_id": "B2",
+      "approach": "B",
+      "polygon": [[840, 120], [1240, 120], [1240, 380], [840, 380]]
+    }
+  ]
+}
