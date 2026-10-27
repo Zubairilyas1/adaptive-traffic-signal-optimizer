@@ -81,6 +81,7 @@ python-dotenv==1.2.4
 python-multipart==0.0.32
 python-pptx==1.0.2
 python-slugify==9.1.2
+pyserial==3.5
 PyYAML==6.0.3
 referencing==0.37.0
 requests==2.34.2
