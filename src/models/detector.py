@@ -114,6 +114,25 @@ class VehicleDetector:
         result = self.infer(image)
         return [self._to_detection(box) for box in result.boxes]
 
+    def __call__(self, image: ImageInput, track: bool = True) -> list[dict]:
+        """Track or detect vehicles in a single frame and return a list of plain dicts."""
+        if track:
+            results = self.model.track(
+                source=image,
+                device=self.device,
+                conf=self.conf,
+                iou=self.iou,
+                imgsz=self.imgsz,
+                classes=self.class_ids,
+                max_det=self.max_det,
+                verbose=False,
+                tracker="bytetrack.yaml",
+                persist=True,
+            )
+            return self.result_to_dicts(results[0])
+        result = self.infer(image)
+        return self.result_to_dicts(result)
+
     def infer(self, image: ImageInput):
         """Run detection and return the raw Ultralytics result object."""
         results = self.model.predict(
