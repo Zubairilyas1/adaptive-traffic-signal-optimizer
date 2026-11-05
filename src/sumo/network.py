@@ -83,6 +83,8 @@ def _routes_xml(demand: dict[str, float], duration: float, seed: int = 42) -> st
     for by, (inc, outs) in APPROACHES.items():
         veh = float(demand.get(by, 0.0))
         half = veh / 2.0
+        if half <= 0.0:
+            continue
         for i, out in enumerate(outs):
             flows.append(
                 f'    <flow id="{by}_{i}" begin="0" end="{duration:.0f}" '
