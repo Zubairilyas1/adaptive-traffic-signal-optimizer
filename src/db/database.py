@@ -84,6 +84,30 @@ def init_db(db_path: Path | str | None = None) -> Path:
             );
         """)
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS digital_twin_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                timestamp REAL NOT NULL,
+                sim_time REAL NOT NULL,
+                q_north_cam REAL NOT NULL,
+                q_south_cam REAL NOT NULL,
+                q_east_cam REAL NOT NULL,
+                q_west_cam REAL NOT NULL,
+                q_north_sumo REAL NOT NULL,
+                q_south_sumo REAL NOT NULL,
+                q_east_sumo REAL NOT NULL,
+                q_west_sumo REAL NOT NULL,
+                divergence_mae REAL NOT NULL,
+                active_phase INTEGER NOT NULL,
+                active_aspect TEXT NOT NULL,
+                controller_type TEXT NOT NULL,
+                action_taken INTEGER NOT NULL,
+                step_reward REAL NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
         # Performance indexes for historical queries
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_telemetry_lookup
@@ -97,16 +121,24 @@ def init_db(db_path: Path | str | None = None) -> Path:
             CREATE INDEX IF NOT EXISTS idx_violations_lookup
             ON violations (intersection_id, timestamp);
         """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_digital_twin_lookup
+            ON digital_twin_logs (session_id, timestamp);
+        """)
 
     return target
+
+
+_INITIALIZED_DBS: set[Path] = set()
 
 
 @contextlib.contextmanager
 def get_db_connection(db_path: Path | str | None = None) -> Iterator[sqlite3.Connection]:
     """Context manager providing a SQLite connection with Row factory."""
     target = _resolve_path(db_path)
-    if not target.exists():
+    if target not in _INITIALIZED_DBS or not target.exists():
         init_db(target)
+        _INITIALIZED_DBS.add(target)
     conn = sqlite3.connect(str(target), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     try:
@@ -374,11 +406,104 @@ def get_summary_stats(
         }
 
 
+def log_digital_twin_step(
+    session_id: str,
+    timestamp: float,
+    sim_time: float,
+    queues_cam: dict[str, float] | Any,
+    queues_sumo: dict[str, float] | Any,
+    divergence_mae: float,
+    active_phase: int,
+    active_aspect: str,
+    controller_type: str,
+    action_taken: int,
+    step_reward: float,
+    db_path: Path | str | None = None,
+) -> None:
+    """Record an instantaneous digital twin perception-vs-simulation synchronization step."""
+    def _extract_q(q_input: Any) -> tuple[float, float, float, float]:
+        if isinstance(q_input, dict):
+            return (
+                float(q_input.get("N", q_input.get("North", 0.0))),
+                float(q_input.get("S", q_input.get("South", 0.0))),
+                float(q_input.get("E", q_input.get("East", 0.0))),
+                float(q_input.get("W", q_input.get("West", 0.0))),
+            )
+        vals = [float(x) for x in list(q_input)[:4]]
+        while len(vals) < 4:
+            vals.append(0.0)
+        return (vals[0], vals[1], vals[2], vals[3])
+
+    qn_cam, qs_cam, qe_cam, qw_cam = _extract_q(queues_cam)
+    qn_sumo, qs_sumo, qe_sumo, qw_sumo = _extract_q(queues_sumo)
+
+    with get_db_connection(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO digital_twin_logs (
+                session_id, timestamp, sim_time,
+                q_north_cam, q_south_cam, q_east_cam, q_west_cam,
+                q_north_sumo, q_south_sumo, q_east_sumo, q_west_sumo,
+                divergence_mae, active_phase, active_aspect,
+                controller_type, action_taken, step_reward
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """,
+            (
+                str(session_id),
+                round(float(timestamp), 2),
+                round(float(sim_time), 2),
+                round(qn_cam, 2),
+                round(qs_cam, 2),
+                round(qe_cam, 2),
+                round(qw_cam, 2),
+                round(qn_sumo, 2),
+                round(qs_sumo, 2),
+                round(qe_sumo, 2),
+                round(qw_sumo, 2),
+                round(float(divergence_mae), 2),
+                int(active_phase),
+                str(active_aspect),
+                str(controller_type),
+                int(action_taken),
+                round(float(step_reward), 2),
+            ),
+        )
+        conn.commit()
+
+
+def query_digital_twin_logs(
+    session_id: str | None = None,
+    limit: int = 100,
+    db_path: Path | str | None = None,
+) -> list[dict[str, Any]]:
+    """Retrieve recent digital twin synchronization records."""
+    with get_db_connection(db_path) as conn:
+        if session_id:
+            cursor = conn.execute(
+                """
+                SELECT * FROM digital_twin_logs
+                WHERE session_id = ?
+                ORDER BY timestamp DESC, id DESC LIMIT ?;
+                """,
+                (session_id, limit),
+            )
+        else:
+            cursor = conn.execute(
+                """
+                SELECT * FROM digital_twin_logs
+                ORDER BY timestamp DESC, id DESC LIMIT ?;
+                """,
+                (limit,),
+            )
+        return [dict(row) for row in cursor.fetchall()]
+
+
 def purge_all_data(db_path: Path | str | None = None) -> None:
     """Purge all recorded telemetry, actuations, and violations (for tests and resets)."""
     with get_db_connection(db_path) as conn:
         conn.execute("DELETE FROM telemetry_logs;")
         conn.execute("DELETE FROM actuation_events;")
         conn.execute("DELETE FROM violations;")
+        conn.execute("DELETE FROM digital_twin_logs;")
         conn.execute("DELETE FROM intersections;")
         conn.commit()
