@@ -124,3 +124,61 @@ def test_live_policy_actuator_hot_swap():
 
     actuator.set_controller("ppo")
     assert actuator.controller_type == "ppo"
+
+    actuator.set_controller("dual_regime")
+    assert actuator.controller_type == "dual_regime"
+
+
+def test_live_policy_preemption():
+    from src.analysis.preemption import PreemptionRequest
+
+    actuator = LivePolicyActuator(controller_type="fixed", fixed_green=30.0)
+    actuator.reset(phase=0)
+
+    # Currently Phase 0 (North-South) is green
+    dec1 = actuator.step([0, 0, 0, 0], dt=1.0)
+    assert dec1.active_aspect == LiveSignalAspect.GREEN
+    assert dec1.active_phase == 0
+
+    # Emergency vehicle arrives on East approach (Phase 1)
+    req = PreemptionRequest(
+        track_id=777,
+        vehicle_class="ambulance",
+        approach="East",
+        speed_km_h=60.0,
+        distance_to_stopline_m=50.0,
+        eta_seconds=3.0,
+        timestamp=2.0,
+    )
+    actuator.request_preemption(req)
+
+    # Next step must immediately initiate CLEARING
+    dec2 = actuator.step([0, 0, 0, 0], dt=1.0)
+    assert dec2.preemption_active is True
+    assert dec2.active_aspect in (LiveSignalAspect.YELLOW, LiveSignalAspect.ALL_RED)
+
+    # Advance through clearance into emergency green (2.5s yellow + 1.0s all-red = 3.5s total)
+    for _ in range(3):
+        dec_clear = actuator.step([0, 0, 0, 0], dt=1.0)
+
+    # Now Phase 1 (East-West) must be holding emergency green!
+    assert dec_clear.active_phase == 1
+    assert dec_clear.active_aspect == LiveSignalAspect.GREEN
+    assert dec_clear.preemption_active is True
+    assert "EMERGENCY" in dec_clear.rationale
+
+
+def test_live_policy_dual_regime_gating():
+    actuator = LivePolicyActuator(controller_type="dual_regime", min_green=5.0, max_green=40.0)
+    actuator.reset(phase=0)
+
+    # Moderate demand -> Undersaturated regime
+    dec_mod = actuator.step([4.0, 3.0, 2.0, 1.0], dt=1.0)
+    assert dec_mod.regime == "Undersaturated (Webster Delay-Minimization)"
+
+    # Extreme bottleneck backlog on North/South (total queue = 30.0 PCU >= 25.0 threshold)
+    heavy_ns = [16.0, 14.0, 2.0, 1.0]
+    dec_gate = actuator.step(heavy_ns, dt=1.0)
+    assert dec_gate.regime == "Oversaturated (Anti-Spillback Gating)"
+    assert "GATING FLUSH" in dec_gate.rationale
+    assert dec_gate.action == 0  # Hold green to flush bottleneck!

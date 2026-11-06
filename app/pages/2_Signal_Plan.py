@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 try:
     import _bootstrap  # noqa: F401
 except ImportError:
@@ -142,7 +144,7 @@ with tab_alloc:
     plan_df["share_%"] = (plan_df["green_s"] / plan.cycle * 100).round(1)
     st.dataframe(plan_df, width="stretch", hide_index=True)
 
-    c_dl1, c_dl2 = st.columns(2)
+    c_dl1, c_dl2, c_dl3 = st.columns(3)
     with c_dl1:
         st.download_button(
             "Download Signal Plan (CSV)",
@@ -158,6 +160,34 @@ with tab_alloc:
             file_name="signal_plan.pdf",
             mime="application/pdf",
             key="dl_plan_pdf",
+        )
+    with c_dl3:
+        from src.reports.audit_report import MunicipalAuditData, generate_municipal_pdf_report
+
+        app_vols: dict[str, dict[str, Any]] = {}
+        if counts and hasattr(counts, "counts_by_approach"):
+            for a, c_dict in counts.counts_by_approach.items():
+                pcu_val = counts.pcu_by_approach.get(a, 0.0) if hasattr(counts, "pcu_by_approach") else sum(c_dict.values())
+                app_vols[a] = dict(c_dict)
+                app_vols[a]["total_pcu"] = pcu_val
+
+        muni_data = MunicipalAuditData(
+            intersection_name=intersection.name,
+            cycle_length_s=plan.cycle,
+            phase_greens_s={f"Phase {pid}": g for pid, g in plan.green.items()},
+            critical_flow_ratio_y=plan.critical_flow_ratio,
+            regime_name=getattr(plan, "regime_rationale", "Undersaturated Webster"),
+            fixed_delay_s=comparison.fixed_avg_delay,
+            ppo_delay_s=comparison.optimized_avg_delay,
+            approach_volumes=app_vols or None,
+        )
+        st.download_button(
+            "📑 Municipal Audit Report (PDF)",
+            generate_municipal_pdf_report(muni_data),
+            file_name="official_municipal_audit_report.pdf",
+            mime="application/pdf",
+            key="dl_muni_audit_pdf",
+            type="primary",
         )
 
 with tab_delay:

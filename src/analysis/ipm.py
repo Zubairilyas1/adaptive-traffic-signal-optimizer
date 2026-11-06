@@ -101,3 +101,34 @@ class IPMTransformer:
             return 0.0
         distances = [self.distance_to_stopline_meters(box) for box in boxes]
         return float(max(distances))
+
+    def warp_perspective(
+        self,
+        image: np.ndarray,
+        out_size: Tuple[int, int] = (300, 600),
+    ) -> np.ndarray:
+        """Warp image into an orthographic Bird's-Eye View (BEV)."""
+        out_w, out_h = out_size
+        src = np.array(self.calibration.image_points, dtype=np.float32)
+        dst = np.array([
+            [0, 0],
+            [out_w - 1, 0],
+            [out_w - 1, out_h - 1],
+            [0, out_h - 1],
+        ], dtype=np.float32)
+        m_bev = cv2.getPerspectiveTransform(src, dst)
+        return cv2.warpPerspective(image, m_bev, (out_w, out_h), flags=cv2.INTER_LINEAR)
+
+    def draw_calibration_polygon(
+        self,
+        image: np.ndarray,
+        color: Tuple[int, int, int] = (0, 240, 255),
+        thickness: int = 2,
+    ) -> np.ndarray:
+        """Draw 4-point calibration trapezoid boundary onto image."""
+        overlay = image.copy()
+        pts = np.array(self.calibration.image_points, dtype=np.int32).reshape((-1, 1, 2))
+        cv2.polylines(overlay, [pts], isClosed=True, color=color, thickness=thickness)
+        for pt in self.calibration.image_points:
+            cv2.circle(overlay, (int(pt[0]), int(pt[1])), 4, (0, 255, 157), -1)
+        return overlay
