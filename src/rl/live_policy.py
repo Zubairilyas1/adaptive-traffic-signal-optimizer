@@ -18,6 +18,11 @@ from typing import Any, Dict, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from src import config
+from src.analysis.preemption import (
+    PreemptionCoordinator,
+    PreemptionRequest,
+    PreemptionState,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +52,8 @@ class PolicyDecision:
     confidence: float  # Confidence of chosen action (0.0 to 1.0)
     rationale: str  # Human-interpretable reasoning for this decision
     switched: bool = False  # True on the exact step where green phase switched
+    preemption_active: bool = False  # True if emergency vehicle preemption is active
+    regime: Optional[str] = None  # Optimization regime ("Undersaturated", "Near-Capacity", "Gating")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -62,6 +69,8 @@ class PolicyDecision:
             "confidence": round(float(self.confidence), 4),
             "rationale": self.rationale,
             "switched": self.switched,
+            "preemption_active": self.preemption_active,
+            "regime": self.regime,
         }
 
 
@@ -196,6 +205,14 @@ class LivePolicyActuator:
         # Controllers
         self.ppo = LivePPOController(model_path=ppo_model_path)
 
+        # Emergency Preemption Coordinator
+        self.preemption = PreemptionCoordinator(
+            yellow_clearance_s=2.5,
+            all_red_clearance_s=1.0,
+            post_passage_hold_s=2.0,
+            max_preempt_duration_s=45.0,
+        )
+
         # State machine
         self.active_phase: int = 0  # 0: North-South, 1: East-West
         self.active_aspect: LiveSignalAspect = LiveSignalAspect.GREEN
@@ -205,6 +222,14 @@ class LivePolicyActuator:
         # Operational metrics
         self.total_switches: int = 0
         self.last_decision: Optional[PolicyDecision] = None
+
+    def request_preemption(self, req: PreemptionRequest) -> None:
+        """Activate emergency priority green wave for an approaching emergency vehicle."""
+        self.preemption.trigger_preemption(req, self.active_phase)
+
+    def cancel_preemption(self) -> None:
+        """Cancel any active emergency preemption."""
+        self.preemption.cancel()
 
     def set_controller(self, controller_type: str) -> None:
         """Hot-swap controller mode ('ppo', 'actuated', 'fixed') without resetting signal state."""
@@ -219,7 +244,7 @@ class LivePolicyActuator:
         self.total_switches = 0
         self.last_decision = None
 
-    def _evaluate_policy_raw(self, obs: np.ndarray, raw_queues: np.ndarray) -> tuple[int, float, np.ndarray, str]:
+    def _evaluate_policy_raw(self, obs: np.ndarray, raw_queues: np.ndarray) -> tuple[int, float, np.ndarray, str, Optional[str]]:
         """Compute the unconstrained decision from the selected controller."""
         c_type = self.controller_type
 
@@ -232,7 +257,54 @@ class LivePolicyActuator:
                 if raw_act == 1
                 else f"Fixed green holding ({self.green_elapsed_s:.1f}s < {self.fixed_green:.1f}s)"
             )
-            return raw_act, conf, probs, rat
+            return raw_act, conf, probs, rat, None
+
+        if c_type in ("dual_regime", "dual-regime", "gating"):
+            ns = float(raw_queues[0] + raw_queues[1])
+            ew = float(raw_queues[2] + raw_queues[3])
+            total_q = ns + ew
+
+            # Oversaturated Gating Mode if severe backlog across intersection
+            if total_q >= 25.0:
+                regime_str = "Oversaturated (Anti-Spillback Gating)"
+                bottleneck_is_ns = ns >= ew
+                curr_is_bottleneck = (self.active_phase == 0 and bottleneck_is_ns) or (
+                    self.active_phase == 1 and not bottleneck_is_ns
+                )
+
+                if curr_is_bottleneck:
+                    if self.green_elapsed_s < self.max_green:
+                        raw_act = 0
+                        rat = f"GATING FLUSH: Bottleneck corridor ({'NS' if bottleneck_is_ns else 'EW'}) extended ({self.green_elapsed_s:.1f}s / {self.max_green:.1f}s)"
+                    else:
+                        raw_act = 1
+                        rat = f"GATING FLUSH COMPLETE: Max green reached ({self.green_elapsed_s:.1f}s)"
+                else:
+                    # Secondary approach is metered: max green 15s to prevent downstream spillback
+                    meter_limit = 15.0
+                    if self.green_elapsed_s >= meter_limit:
+                        raw_act = 1
+                        rat = f"ANTI-SPILLBACK METERING: Secondary approach green capped at {meter_limit:.0f}s to prevent gridlock"
+                    else:
+                        raw_act = 0
+                        rat = f"ANTI-SPILLBACK METERING: Metered green active ({self.green_elapsed_s:.1f}s / {meter_limit:.0f}s)"
+
+                probs = np.array([0.05, 0.95] if raw_act == 1 else [0.95, 0.05], dtype=np.float32)
+                return raw_act, 1.0, probs, rat, regime_str
+            else:
+                regime_str = "Undersaturated (Webster Delay-Minimization)"
+                curr, other = (ns, ew) if self.active_phase == 0 else (ew, ns)
+                if (other - curr) >= self.actuated_margin:
+                    raw_act = 1
+                    rat = f"Webster split: cross queue ({other:.1f} PCU) exceeds active ({curr:.1f} PCU) -> Requesting switch"
+                elif self.green_elapsed_s >= 40.0:
+                    raw_act = 1
+                    rat = f"Webster cycle boundary ({self.green_elapsed_s:.1f}s >= 40.0s)"
+                else:
+                    raw_act = 0
+                    rat = f"Webster flow holding green on active corridor ({curr:.1f} PCU)"
+                probs = np.array([0.1, 0.9] if raw_act == 1 else [0.9, 0.1], dtype=np.float32)
+                return raw_act, 1.0, probs, rat, regime_str
 
         if c_type in ("actuated", "rule-based"):
             ns = float(raw_queues[0] + raw_queues[1])
@@ -250,7 +322,7 @@ class LivePolicyActuator:
                 rat = f"Active corridor dominant (Curr: {curr:.1f} vs Cross: {other:.1f} PCU) -> Holding green"
 
             probs = np.array([0.1, 0.9] if raw_act == 1 else [0.9, 0.1], dtype=np.float32)
-            return raw_act, 1.0, probs, rat
+            return raw_act, 1.0, probs, rat, None
 
         # Default: PPO Neural Agent
         raw_act, conf, probs = self.ppo.predict(obs)
@@ -258,7 +330,7 @@ class LivePolicyActuator:
             rat = f"PPO Neural Policy predicts switch (confidence {conf*100:.1f}%) based on queue balance"
         else:
             rat = f"PPO Neural Policy predicts hold green (confidence {conf*100:.1f}%)"
-        return raw_act, conf, probs, rat
+        return raw_act, conf, probs, rat, None
 
     def step(
         self,
@@ -279,6 +351,84 @@ class LivePolicyActuator:
 
         self.time_in_state_s += dt
         switched = False
+
+        # Emergency Preemption Priority Override
+        if self.preemption.state != PreemptionState.IDLE:
+            preempt_state, override_phase, p_msg = self.preemption.step(dt=dt)
+
+            if preempt_state == PreemptionState.CLEARING:
+                if self.preemption.state_time_s < self.preemption.yellow_clearance_s:
+                    self.active_aspect = LiveSignalAspect.YELLOW
+                else:
+                    self.active_aspect = LiveSignalAspect.ALL_RED
+
+                decision = PolicyDecision(
+                    action=1,
+                    raw_action=1,
+                    policy_name="PREEMPTION",
+                    active_phase=self.active_phase,
+                    active_aspect=self.active_aspect,
+                    green_elapsed_s=self.green_elapsed_s,
+                    time_in_state_s=self.time_in_state_s,
+                    observation=obs,
+                    probabilities=np.array([0.0, 1.0], dtype=np.float32),
+                    confidence=1.0,
+                    rationale=p_msg,
+                    switched=False,
+                    preemption_active=True,
+                    regime=None,
+                )
+                self.last_decision = decision
+                return decision
+
+            elif preempt_state == PreemptionState.PREEMPTING and override_phase is not None:
+                switched = (self.active_phase != override_phase)
+                self.active_phase = override_phase
+                self.active_aspect = LiveSignalAspect.GREEN
+                if switched:
+                    self.green_elapsed_s = 0.0
+                    self.total_switches += 1
+                else:
+                    self.green_elapsed_s += dt
+
+                decision = PolicyDecision(
+                    action=0,
+                    raw_action=0,
+                    policy_name="PREEMPTION",
+                    active_phase=self.active_phase,
+                    active_aspect=self.active_aspect,
+                    green_elapsed_s=self.green_elapsed_s,
+                    time_in_state_s=self.time_in_state_s,
+                    observation=obs,
+                    probabilities=np.array([1.0, 0.0], dtype=np.float32),
+                    confidence=1.0,
+                    rationale=p_msg,
+                    switched=switched,
+                    preemption_active=True,
+                    regime=None,
+                )
+                self.last_decision = decision
+                return decision
+
+            elif preempt_state == PreemptionState.RECOVERING:
+                decision = PolicyDecision(
+                    action=0,
+                    raw_action=0,
+                    policy_name="PREEMPTION",
+                    active_phase=self.active_phase,
+                    active_aspect=self.active_aspect,
+                    green_elapsed_s=self.green_elapsed_s,
+                    time_in_state_s=self.time_in_state_s,
+                    observation=obs,
+                    probabilities=np.array([1.0, 0.0], dtype=np.float32),
+                    confidence=1.0,
+                    rationale=p_msg,
+                    switched=False,
+                    preemption_active=True,
+                    regime=None,
+                )
+                self.last_decision = decision
+                return decision
 
         # State 1: In Yellow Clearance
         if self.active_aspect == LiveSignalAspect.YELLOW:
@@ -363,7 +513,7 @@ class LivePolicyActuator:
 
         # State 3: In Active Green Phase
         self.green_elapsed_s += dt
-        raw_act, conf, probs, rationale = self._evaluate_policy_raw(obs, raw_q)
+        raw_act, conf, probs, rationale, regime_val = self._evaluate_policy_raw(obs, raw_q)
 
         # Enforce safety guardrails: Minimum Green & Maximum Green
         if raw_act == 1:
@@ -403,6 +553,8 @@ class LivePolicyActuator:
             confidence=conf,
             rationale=rationale,
             switched=switched,
+            preemption_active=False,
+            regime=regime_val,
         )
         self.last_decision = decision
         return decision
