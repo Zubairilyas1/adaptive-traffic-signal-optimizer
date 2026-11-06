@@ -228,3 +228,10 @@ To maintain complete traceability:
 1. Every new feature, subtask, or architectural enhancement must be documented in this ledger before PR merge.
 2. The ledger must record the **Problem**, the **Implemented Architecture**, the **Rejected Alternatives**, and the **Mathematical Proof**.
 3. At the completion of the project, this markdown ledger is compiled directly into the **Official Project Engineering Master Thesis & Defense Report (PDF)**.
+
+### 7.1 Historical Engineering Integration Log
+- **Phase 1 (Perception & Kinematics):** Single/2-Way/T/4-Way semantic topologies (`topologies.py`), instantaneous kinematic velocity vectors with EMA smoothing (`kinematics.py`), stopped queue vs. flowing discharge segregation ($v < 5\text{ km/h}$), live on-video HUD overlay (`hud.py`).
+- **Phase 2 (Digital Twin & Micro-Simulation):** Calibrated 8-class SUMO vehicle injection catalog (`injection.py`), trace-driven route exporter (`trace_route.py`), live video-to-SUMO co-simulation synchronizer (`co_simulation.py`), high-throughput SQLite telemetry logger (`database.py`), 3-tab Digital Twin Studio UI (`4_RL_Signal_Control.py`).
+- **Phase 3 (Physical Calibration, Preemption & CI/CD):** Multi-approach 4-point homography IPM store (`ipm_calibration.py`), metric queue depth calculation ($m$), emergency vehicle preemption priority wave (`preemption.py`), publication-ready municipal vector PDF audit generator (`audit_report.py`), automated GitHub Actions CI/CD pipeline (`ci.yml`), contributing protocol (`CONTRIBUTING.md`), PR template (`PULL_REQUEST_TEMPLATE.md`).
+- **Subtask 4.1 (NEMA TS2 Dual-Ring 8-Phase State Machine):** Implemented mathematical NEMA TS2 dual-ring barrier controller (`nema_dual_ring.py`) with 8 vehicular movements ($\phi_1$ to $\phi_8$), independent ring progression, simultaneous barrier crossing synchronization, gap-out headway detection, max-out clamps, and fail-safe safety assertions. Target test pass: 122/122 passing.
+
