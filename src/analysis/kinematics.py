@@ -203,7 +203,10 @@ class KinematicLaneCounter:
             avg_spd = (sum(v.speed_km_h for v in vehs) / len(vehs)) if vehs else 0.0
 
             halted_boxes = [v.last_bbox for v in halted if v.last_bbox is not None]
-            queue_m = self.ipm.compute_queue_length_meters(halted_boxes)
+            if hasattr(self.ipm, "get_transformer"):
+                queue_m = self.ipm.compute_queue_length_meters(approach, halted_boxes)
+            else:
+                queue_m = self.ipm.compute_queue_length_meters(halted_boxes)
 
             lane_snaps[lane_id] = LaneQueueSnapshot(
                 lane_id=lane_id,
