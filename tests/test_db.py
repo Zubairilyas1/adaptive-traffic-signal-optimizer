@@ -10,11 +10,13 @@ from src.db.database import (
     get_summary_stats,
     init_db,
     log_actuation_event,
+    log_digital_twin_step,
     log_telemetry,
     log_telemetry_batch,
     log_violation,
     purge_all_data,
     query_actuation_events,
+    query_digital_twin_logs,
     query_telemetry,
     query_violations,
 )
@@ -179,3 +181,39 @@ def test_summary_stats_and_purge(temp_db: Path):
     cleared_stats = get_summary_stats("inter_stats", db_path=temp_db)
     assert cleared_stats["total_telemetry_samples"] == 0
     assert cleared_stats["total_violations"] == 0
+
+
+def test_log_and_query_digital_twin(temp_db: Path):
+    log_digital_twin_step(
+        session_id="session_live_1",
+        timestamp=15.0,
+        sim_time=15.0,
+        queues_cam={"N": 3.0, "S": 1.5, "E": 0.0, "W": 2.0},
+        queues_sumo={"N": 3.0, "S": 2.0, "E": 0.0, "W": 1.0},
+        divergence_mae=0.38,
+        active_phase=0,
+        active_aspect="GREEN",
+        controller_type="PPO",
+        action_taken=0,
+        step_reward=-6.0,
+        db_path=temp_db,
+    )
+
+    logs = query_digital_twin_logs("session_live_1", limit=10, db_path=temp_db)
+    assert len(logs) == 1
+    row = logs[0]
+    assert row["session_id"] == "session_live_1"
+    assert row["timestamp"] == 15.0
+    assert row["sim_time"] == 15.0
+    assert row["q_north_cam"] == 3.0
+    assert row["q_north_sumo"] == 3.0
+    assert row["divergence_mae"] == 0.38
+    assert row["active_phase"] == 0
+    assert row["active_aspect"] == "GREEN"
+    assert row["controller_type"] == "PPO"
+    assert row["action_taken"] == 0
+    assert row["step_reward"] == -6.0
+
+    # Purge test
+    purge_all_data(db_path=temp_db)
+    assert len(query_digital_twin_logs("session_live_1", db_path=temp_db)) == 0
