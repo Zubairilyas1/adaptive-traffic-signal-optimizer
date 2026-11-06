@@ -1,0 +1,181 @@
+name: CI Pipeline - Urban Traffic Intelligence
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  MPLBACKEND: "Agg"
+  OPENCV_VIDEOIO_PRIORITY_MSMF: "0"
+  SUMO_HOME: "/usr/share/sumo"
+  CI: "true"
+
+jobs:
+  lint:
+    name: 🔍 Lint & Syntax Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Check Critical Syntax & Undefined Names (E9, F63, F7, F82)
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 src tests app --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Code Quality & Complexity Warnings
+        run: |
+          # Report warnings without failing build for non-critical formatting
+          flake8 src tests app --count --exit-zero --max-complexity=15 --max-line-length=127 --statistics
+
+  test:
+    name: 🧪 Automated Test Suite (115+ Tests)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install System Dependencies (Eclipse SUMO & Headless Libs)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            sumo \
+            sumo-tools \
+            libgl1 \
+            libglib2.0-0
+          echo "SUMO_HOME=/usr/share/sumo" >> $GITHUB_ENV
+          echo "/usr/share/sumo/bin" >> $GITHUB_PATH
+
+      - name: Verify Eclipse SUMO Installation
+        run: |
+          sumo --version
+          which sumo
+
+      - name: Cache Pip Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Fast install: PyTorch CPU wheel avoids downloading 2GB+ CUDA drivers on CPU runner
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          # Install full repository requirements
+          pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu124 || pip install -r requirements.txt
+          pip install pytest pytest-timeout pytest-cov
+
+      - name: Execute Pytest Suite (Headless & Co-Simulation)
+        run: |
+          pytest tests/ -v --tb=short
+
+  smoke-check:
+    name: 🚀 Smoke Check & Artifact Generation
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+
+      - name: Cache Pip Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Minimal Runtime Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu124 || pip install -r requirements.txt
+
+      - name: Smoke Test Core Package Imports & DB Schema
+        run: |
+          python -c "
+          import src
+          import src.config
+          import src.db.database
+          src.db.database.init_db()
+          print('Database schema initialized successfully')
+          "
+
+      - name: Smoke Test Municipal Audit Vector PDF Generator
+        run: |
+          python -c "
+          from src.reports.audit_report import MunicipalAuditReportGenerator, MunicipalAuditData
+          data = MunicipalAuditData()
+          gen = MunicipalAuditReportGenerator(data)
+          pdf_bytes = gen.generate_pdf_bytes()
+          assert len(pdf_bytes) > 2000, f'Generated PDF too small ({len(pdf_bytes)} bytes)'
+          print(f'Municipal Audit PDF generated successfully ({len(pdf_bytes)} bytes)')
+          "
+
+      - name: Smoke Test Streamlit App Component Resolution
+        run: |
+          python -c "
+          import streamlit
+          import app._bootstrap
+          import app.components.theme
+          import app.components.cards
+          print('Streamlit components and bootstrap import verified')
+          "
+
+  ci-gate:
+    name: 🛡️ CI Quality Gate
+    runs-on: ubuntu-latest
+    needs: [lint, test, smoke-check]
+    if: always()
+    steps:
+      - name: Evaluate Pipeline Status
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.smoke-check.result }}" != "success" ]; then
+            echo "❌ CI Quality Gate Failed! Check previous jobs for details."
+            exit 1
+          fi
+          echo "✅ All CI checks passed successfully! Ready for Pull Request merge."
