@@ -1,6 +1,12 @@
 """Video inference: detections -> counts -> signal plan and live streaming."""
 
 from src.inference.analyze_video import count_clip, render_annotated_video
+from src.inference.live_cctv_worker import (
+    LiveCCTVTelemetry,
+    LiveCCTVWorker,
+    LiveCCTVWorkerConfig,
+    TrackedCCTVVehicle,
+)
 from src.inference.rtsp_stream import (
     MockTrafficStreamGenerator,
     StreamConnectionState,
@@ -21,4 +27,8 @@ __all__ = [
     "StreamSourceConfig",
     "StreamSourceType",
     "ThreadedFrameReader",
+    "LiveCCTVTelemetry",
+    "LiveCCTVWorker",
+    "LiveCCTVWorkerConfig",
+    "TrackedCCTVVehicle",
 ]
