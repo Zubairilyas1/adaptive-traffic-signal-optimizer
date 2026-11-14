@@ -190,6 +190,15 @@ class ThreadedFrameReader:
         except queue.Empty:
             return None, 0.0, 0
 
+    def read(self, timeout: float = 0.5) -> tuple[bool, Optional[np.ndarray], float]:
+        """Convenience method matching standard video capture read interface.
+
+        Returns:
+            Tuple of (has_frame: bool, frame: Optional[np.ndarray], capture_timestamp: float).
+        """
+        frame, ts, _ = self.get_latest_frame(timeout=timeout)
+        return (frame is not None), frame, ts
+
     def get_telemetry(self) -> StreamHealthTelemetry:
         """Calculates instantaneous telemetry metrics."""
         now = time.monotonic()
