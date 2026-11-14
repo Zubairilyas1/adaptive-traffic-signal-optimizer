@@ -4,6 +4,15 @@ from src.decision.actuator import AdaptiveActuator, ControllerState, DecisionRea
 from src.decision.dual_regime import DualRegimeOptimizer, DualRegimePlan, OptimizationRegime
 from src.decision.fail_safe import FailureReason, HealthState, NEMAFailSafeWatchdog
 from src.decision.intersection import Intersection, SignalPlan, load_intersection
+from src.decision.nema_dual_ring import (
+    NEMADecision,
+    NEMADualRingController,
+    NEMAPhase,
+    PhaseInterval,
+    PhaseTimingConfig,
+    RingBarrierStage,
+    are_phases_compatible,
+)
 from src.decision.webster import optimize, webster_cycle, webster_greens
 
 __all__ = [
@@ -23,4 +32,11 @@ __all__ = [
     "optimize",
     "webster_cycle",
     "webster_greens",
+    "NEMADecision",
+    "NEMADualRingController",
+    "NEMAPhase",
+    "PhaseInterval",
+    "PhaseTimingConfig",
+    "RingBarrierStage",
+    "are_phases_compatible",
 ]
