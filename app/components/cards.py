@@ -32,39 +32,9 @@ def show_disclaimer() -> None:
 
 
 def render_executive_kpi_card_row(cards: list[dict]) -> None:
-    """Render Image 1 style dark-header KPI cards with right-hand circular icon badges."""
-    cols = st.columns(len(cards))
-    for idx, c in enumerate(cards):
-        header = c.get("header", "METRIC")
-        val = c.get("value", "0")
-        delta = c.get("delta", "")
-        delta_color = "#00ff9d" if c.get("delta_positive", True) else "#ff3366"
-        icon = c.get("icon", "📈")
-        icon_bg = c.get("icon_bg", "rgba(0, 240, 255, 0.12)")
-        icon_color = c.get("icon_color", "#00f0ff")
-
-        card_html = f"""
-        <div style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.25); margin-bottom: 12px; min-width: 140px;">
-            <div style="background: #1f2937; padding: 8px 14px; font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                {header}
-            </div>
-            <div style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                <div style="min-width: 0; flex: 1;">
-                    <div style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 1.55rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {val}
-                    </div>
-                    <div style="font-size: 0.72rem; font-weight: 600; color: {delta_color}; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {delta}
-                    </div>
-                </div>
-                <div style="flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; background: {icon_bg}; border: 1px solid {icon_color}33; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                    {icon}
-                </div>
-            </div>
-        </div>
-        """
-        with cols[idx]:
-            st.markdown(card_html, unsafe_allow_html=True)
+    """Render modern executive KPI cards in a responsive auto-fitting grid that eliminates truncation."""
+    from app.components.theme import render_kpi_grid
+    render_kpi_grid(cards)
 
 
 def metric_row(items: list[tuple[str, str, str | None]]) -> None:

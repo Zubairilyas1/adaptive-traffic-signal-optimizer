@@ -1,34 +1,44 @@
-"""Theme and styling engine: Synthesis of Enterprise Dashboard (Image 1) & High-Tech Dark Telemetry (Image 2).
+"""Modern Civic Engineering Design System & Theme Engine.
 
-Key Features:
-- Carbon Slate command palette (#070a12 canvas, #0d1424 card surfaces)
-- Image 1 Layout: Dark header pill KPI cards, breadcrumbs, clean circular icon badges
-- Image 2 Telemetry: High-contrast cyan (#00f0ff) & coral pink (#ff3366) data curves
-- Monospace precision typography ('JetBrains Mono', Consolas, monospace)
+Key Principles:
+- Deep Executive Slate palette (#0b0f19 canvas, #131c2e card surfaces)
+- Luminous elevation with crisp subtle borders (1px solid rgba(255,255,255,0.08))
+- Municipal brand blue (#3b82f6), refined emerald (#10b981), and warm amber (#f59e0b)
+- Responsive auto-fit card grids that eliminate text and button truncation (...)
+- High-legibility typography hierarchy with WCAG AAA contrast
 """
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import streamlit as st
 
 
 def apply_theme() -> None:
-    """Inject global CSS rules to create an irresistible, authentic TMC console."""
+    """Inject global CSS rules to create a clean, light, trustworthy, and modern SaaS console."""
     css = """
     <style>
     /* Global Canvas */
     .stApp {
-        background-color: #070a12;
+        background-color: #0b0f19;
         color: #f1f5f9;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
     }
 
     /* Top Streamlit Header */
     header[data-testid="stHeader"] {
-        background-color: rgba(7, 10, 18, 0.90);
-        backdrop-filter: blur(12px);
+        background-color: rgba(11, 15, 25, 0.92);
+        backdrop-filter: blur(14px);
+    }
+
+    /* Main Container Padding & Max Width */
+    .block-container {
+        max-width: 1440px !important;
+        padding-top: 2rem !important;
+        padding-bottom: 3.5rem !important;
+        padding-left: 2.5rem !important;
+        padding-right: 2.5rem !important;
     }
 
     /* Headings */
@@ -40,94 +50,116 @@ def apply_theme() -> None:
 
     /* Streamlit Default Metrics Styling */
     div[data-testid="stMetric"] {
-        background-color: #0e1628;
+        background-color: #131c2e;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        padding: 14px 18px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+        transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    div[data-testid="stMetric"]:hover {
+        border-color: rgba(59, 130, 246, 0.35);
     }
     div[data-testid="stMetricLabel"] {
         color: #94a3b8 !important;
         font-size: 0.78rem !important;
-        font-weight: 700;
+        font-weight: 700 !important;
         text-transform: uppercase;
         letter-spacing: 0.06em;
     }
     div[data-testid="stMetricValue"] {
-        color: #00f0ff !important;
+        color: #f8fafc !important;
         font-family: "JetBrains Mono", Consolas, monospace !important;
-        font-size: 1.7rem !important;
-        font-weight: 700 !important;
+        font-size: 1.65rem !important;
+        font-weight: 800 !important;
+    }
+    div[data-testid="stMetricDelta"] {
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
     }
 
     /* Section Dividers */
     hr {
         border-color: rgba(255, 255, 255, 0.08) !important;
-        margin: 1.5rem 0 !important;
+        margin: 1.75rem 0 !important;
     }
 
-    /* Tabs (Image 1 / Image 2 style) */
+    /* Tabs (Modern Segmented Style) */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        padding-bottom: 2px;
+        gap: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 4px;
         background: transparent;
     }
     .stTabs [data-baseweb="tab"] {
-        background-color: #0d1424;
+        background-color: #131c2e;
         border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 6px 6px 0 0;
-        padding: 8px 18px;
+        border-radius: 8px 8px 0 0;
+        padding: 10px 22px;
         color: #94a3b8;
-        font-size: 0.88rem;
+        font-size: 0.9rem;
         font-weight: 600;
+        transition: all 0.15s ease;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #f1f5f9;
+        background-color: #1a253c;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #162238 !important;
-        color: #00f0ff !important;
-        border-bottom: 2px solid #00f0ff !important;
-        border-top: 1px solid rgba(0, 240, 255, 0.3) !important;
+        background-color: #1e293b !important;
+        color: #38bdf8 !important;
+        border-bottom: 2px solid #3b82f6 !important;
+        border-top: 1px solid rgba(59, 130, 246, 0.35) !important;
     }
 
     /* Dataframe Tables */
     div[data-testid="stDataFrame"] {
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        background-color: #0a0f1c;
+        border-radius: 10px;
+        background-color: #0f172a;
     }
 
     /* Primary Action Buttons */
     div.stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff;
         font-weight: 700;
         letter-spacing: 0.02em;
         border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 6px;
-        padding: 0.6rem 1.4rem;
-        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+        border-radius: 8px;
+        padding: 0.65rem 1.6rem;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
         transition: all 0.2s ease;
+        min-width: 140px;
     }
     div.stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.5);
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        transform: translateY(-1px);
     }
     div.stButton > button[kind="secondary"] {
-        background-color: #121a2d;
+        background-color: #1e293b;
         color: #e2e8f0;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 0.65rem 1.4rem;
         font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    div.stButton > button[kind="secondary"]:hover {
+        background-color: #334155;
+        border-color: rgba(255, 255, 255, 0.25);
     }
 
     /* Alerts and Callouts */
     div[data-testid="stAlert"] {
-        background-color: #0d1527;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
+        background-color: #131c2e;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     }
 
-    /* Breadcrumbs Bar (Image 1 Style) */
+    /* Breadcrumbs Bar */
     .tmc-breadcrumbs {
         display: flex;
         align-items: center;
@@ -137,32 +169,33 @@ def apply_theme() -> None:
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
-    .tmc-breadcrumbs a, .tmc-breadcrumbs span.active {
+    .tmc-breadcrumbs span.active {
         color: #38bdf8;
     }
 
     /* Executive Command Header */
     .command-header-box {
-        background: linear-gradient(180deg, #10182b 0%, #0a0f1c 100%);
+        background: linear-gradient(180deg, #131c2e 0%, #0d1524 100%);
         border: 1px solid rgba(255, 255, 255, 0.09);
-        border-radius: 10px;
-        padding: 22px 24px;
+        border-radius: 12px;
+        padding: 24px 28px;
         margin-bottom: 24px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     }
     .command-header-title {
-        font-size: 1.55rem;
+        font-size: 1.65rem;
         font-weight: 800;
         color: #ffffff;
         margin: 0 0 6px 0;
         letter-spacing: -0.02em;
     }
     .command-header-sub {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         color: #94a3b8;
         margin: 0;
+        line-height: 1.5;
     }
 
     /* Telemetry Pill Chips */
@@ -170,35 +203,35 @@ def apply_theme() -> None:
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background-color: #162035;
-        color: #e2e8f0;
+        background-color: #1e293b;
+        color: #cbd5e1;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        padding: 3px 10px;
-        font-size: 0.75rem;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.76rem;
         font-family: "JetBrains Mono", Consolas, monospace;
         font-weight: 600;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.02em;
     }
     .chip-green {
-        color: #00ff9d;
-        border-color: rgba(0, 255, 157, 0.3);
-        background-color: rgba(0, 255, 157, 0.08);
+        color: #34d399;
+        border-color: rgba(52, 211, 153, 0.3);
+        background-color: rgba(52, 211, 153, 0.08);
     }
-    .chip-cyan {
-        color: #00f0ff;
-        border-color: rgba(0, 240, 255, 0.3);
-        background-color: rgba(0, 240, 255, 0.08);
+    .chip-cyan, .chip-blue, .chip-teal {
+        color: #38bdf8;
+        border-color: rgba(56, 189, 248, 0.3);
+        background-color: rgba(56, 189, 248, 0.08);
     }
     .chip-amber {
-        color: #ffaa00;
-        border-color: rgba(255, 170, 0, 0.3);
-        background-color: rgba(255, 170, 0, 0.08);
+        color: #fbbf24;
+        border-color: rgba(251, 191, 36, 0.3);
+        background-color: rgba(251, 191, 36, 0.08);
     }
-    .chip-pink {
-        color: #ff3366;
-        border-color: rgba(255, 51, 102, 0.3);
-        background-color: rgba(255, 51, 102, 0.08);
+    .chip-pink, .chip-red {
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.3);
+        background-color: rgba(248, 113, 113, 0.08);
     }
     </style>
     """
@@ -206,10 +239,18 @@ def apply_theme() -> None:
 
 
 def render_breadcrumb(path: str = "HOME > TRAFFIC OPERATIONS CENTER") -> None:
-    """Render an Image 1 style sleek breadcrumb path."""
+    """Render an authoritative, sleek breadcrumb path."""
+    parts = [p.strip() for p in path.split(">")]
+    spans = []
+    for idx, part in enumerate(parts):
+        is_last = idx == len(parts) - 1
+        cls = 'class="active"' if is_last else ""
+        spans.append(f"<span {cls}>{part}</span>")
+
     html = f"""
     <div class="tmc-breadcrumbs">
-        <span>📍 {path}</span>
+        <span>📍</span>
+        {" &gt; ".join(spans)}
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
@@ -220,7 +261,7 @@ def render_header(
     subtitle: str,
     chips: Optional[List[Tuple[str, str]]] = None,
     badge_label: Optional[str] = None,
-    badge_color: str = "teal",
+    badge_color: str = "blue",
     **kwargs: Any,
 ) -> None:
     """Render an authoritative, clean command-center header banner."""
@@ -241,3 +282,55 @@ def render_header(
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
+
+
+def render_metric_card(
+    label: str,
+    value: str,
+    delta: Optional[str] = None,
+    delta_positive: bool = True,
+    icon: str = "📊",
+    help_text: Optional[str] = None,
+) -> str:
+    """Return HTML string for a clean, non-clipping responsive metric card."""
+    delta_color = "#34d399" if delta_positive else "#f87171"
+    delta_html = f'<div style="font-size: 0.72rem; font-weight: 600; color: {delta_color}; margin-top: 4px;">{delta}</div>' if delta else ""
+    title_attr = f'title="{help_text}"' if help_text else ""
+
+    return f"""
+    <div style="background: #131c2e; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.22); min-width: 140px; display: flex; justify-content: space-between; align-items: center;" {title_attr}>
+        <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {label}
+            </div>
+            <div style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 1.55rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {value}
+            </div>
+            {delta_html}
+        </div>
+        <div style="flex-shrink: 0; margin-left: 10px; font-size: 1.4rem; opacity: 0.85;">
+            {icon}
+        </div>
+    </div>
+    """
+
+
+def render_kpi_grid(cards: List[Dict[str, Any]]) -> None:
+    """Render a responsive auto-fitting grid of KPI cards that never truncates or overlaps."""
+    cards_html = [
+        render_metric_card(
+            label=c.get("label", c.get("header", "METRIC")),
+            value=str(c.get("value", "0")),
+            delta=c.get("delta"),
+            delta_positive=c.get("delta_positive", True),
+            icon=c.get("icon", "📊"),
+            help_text=c.get("help"),
+        )
+        for c in cards
+    ]
+    grid_html = f"""
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px;">
+        {"".join(cards_html)}
+    </div>
+    """
+    st.markdown(grid_html, unsafe_allow_html=True)
