@@ -139,92 +139,95 @@ with tab_tsd:
     st.markdown("### 📈 Time-Space Diagram (TSD) & Progression Bandwidth")
     st.caption("Visualizes distance vs. time. The shaded cyan bands represent the coordinated Green Wave trajectory through which platoons traverse without stopping.")
 
-    # Generate Matplotlib Time-Space Diagram
-    fig, ax = plt.subplots(figsize=(12, 5.5), facecolor="#070a12")
-    ax.set_facecolor("#0a0f1d")
+    try:
+        # Generate Matplotlib Time-Space Diagram
+        fig, ax = plt.subplots(figsize=(12, 5.5), facecolor="#0b0f19")
+        ax.set_facecolor("#111827")
 
-    # Time span: 2 full cycles (e.g. 180s)
-    total_time_span = telem.common_cycle_s * 2.0
-    c_s = telem.common_cycle_s
-    green_split = c_s * 0.45  # 45% arterial green split
-    yellow_split = 4.0
-    red_split = c_s - green_split - yellow_split
+        # Time span: 2 full cycles (e.g. 180s)
+        total_time_span = telem.common_cycle_s * 2.0
+        c_s = telem.common_cycle_s
+        green_split = c_s * 0.45  # 45% arterial green split
+        yellow_split = 4.0
+        red_split = c_s - green_split - yellow_split
 
-    junctions = coordinator.junction_specs
-    # Coordinates: J3 = 0m, J2 = 450m, J1 = 850m
-    j_coords = {j.junction_id: j.y_pos for j in junctions}
-    j_names = {j.junction_id: f"{j.name} ({j.junction_id})" for j in junctions}
+        junctions = coordinator.junction_specs
+        # Coordinates: J3 = 0m, J2 = 450m, J1 = 850m
+        j_coords = {j.junction_id: j.y_pos for j in junctions}
+        j_names = {j.junction_id: f"{j.name} ({j.junction_id})" for j in junctions}
 
-    # Draw Signal Timing Bars at each junction
-    for jid, y_coord in j_coords.items():
-        eff_offset = coordinator.effective_offsets[jid]
+        # Draw Signal Timing Bars at each junction
+        for jid, y_coord in j_coords.items():
+            eff_offset = coordinator.effective_offsets[jid]
 
-        # Draw 2 cycles of signal aspects
-        for cycle_idx in range(-1, 3):
-            cycle_start = cycle_idx * c_s + eff_offset
+            # Draw 2 cycles of signal aspects
+            for cycle_idx in range(-1, 3):
+                cycle_start = cycle_idx * c_s + eff_offset
 
-            # Green interval
-            g_start = max(0.0, cycle_start)
-            g_end = min(total_time_span, cycle_start + green_split)
-            if g_end > g_start:
-                ax.add_patch(patches.Rectangle((g_start, y_coord - 25), g_end - g_start, 50, color="#00f0ff", alpha=0.85))
+                # Green interval
+                g_start = max(0.0, cycle_start)
+                g_end = min(total_time_span, cycle_start + green_split)
+                if g_end > g_start:
+                    ax.add_patch(patches.Rectangle((g_start, y_coord - 25), g_end - g_start, 50, color="#10b981", alpha=0.9))
 
-            # Yellow interval
-            y_start = max(0.0, cycle_start + green_split)
-            y_end = min(total_time_span, cycle_start + green_split + yellow_split)
-            if y_end > y_start:
-                ax.add_patch(patches.Rectangle((y_start, y_coord - 25), y_end - y_start, 50, color="#facc15", alpha=0.85))
+                # Yellow interval
+                y_start = max(0.0, cycle_start + green_split)
+                y_end = min(total_time_span, cycle_start + green_split + yellow_split)
+                if y_end > y_start:
+                    ax.add_patch(patches.Rectangle((y_start, y_coord - 25), y_end - y_start, 50, color="#f59e0b", alpha=0.9))
 
-            # Red interval
-            r_start = max(0.0, cycle_start + green_split + yellow_split)
-            r_end = min(total_time_span, cycle_start + c_s)
-            if r_end > r_start:
-                ax.add_patch(patches.Rectangle((r_start, y_coord - 25), r_end - r_start, 50, color="#ef4444", alpha=0.85))
+                # Red interval
+                r_start = max(0.0, cycle_start + green_split + yellow_split)
+                r_end = min(total_time_span, cycle_start + c_s)
+                if r_end > r_start:
+                    ax.add_patch(patches.Rectangle((r_start, y_coord - 25), r_end - r_start, 50, color="#ef4444", alpha=0.85))
 
-    # Draw Southbound Progression Trajectory Bands (J1 -> J2 -> J3)
-    # y = y1 - v * (t - t0) => t = t0 + (y1 - y) / v
-    y_top = j_coords["J1"]
-    y_bot = j_coords["J3"]
-    delta_y = y_top - y_bot
-    travel_time_total = delta_y / coordinator.prog_speed_mps
+        # Draw Southbound Progression Trajectory Bands (J1 -> J2 -> J3)
+        # y = y1 - v * (t - t0) => t = t0 + (y1 - y) / v
+        y_top = j_coords["J1"]
+        y_bot = j_coords["J3"]
+        delta_y = y_top - y_bot
+        travel_time_total = delta_y / coordinator.prog_speed_mps
 
-    for cycle_idx in range(2):
-        t0 = coordinator.effective_offsets["J1"] + cycle_idx * c_s
-        # Green wave leading edge and trailing edge
-        t_lead_top = t0
-        t_lead_bot = t0 + travel_time_total
-        t_trail_top = t0 + telem.green_bandwidth_s * 0.75
-        t_trail_bot = t_trail_top + travel_time_total
+        for cycle_idx in range(2):
+            t0 = coordinator.effective_offsets["J1"] + cycle_idx * c_s
+            # Green wave leading edge and trailing edge
+            t_lead_top = t0
+            t_lead_bot = t0 + travel_time_total
+            t_trail_top = t0 + telem.green_bandwidth_s * 0.75
+            t_trail_bot = t_trail_top + travel_time_total
 
-        # Draw shaded progression bandwidth polygon
-        polygon_pts = [
-            (t_lead_top, y_top),
-            (t_trail_top, y_top),
-            (t_trail_bot, y_bot),
-            (t_lead_bot, y_bot),
-        ]
-        poly = patches.Polygon(polygon_pts, closed=True, color="#00f0ff", alpha=0.15, hatch="//")
-        ax.add_patch(poly)
+            # Draw shaded progression bandwidth polygon
+            polygon_pts = [
+                (t_lead_top, y_top),
+                (t_trail_top, y_top),
+                (t_trail_bot, y_bot),
+                (t_lead_bot, y_bot),
+            ]
+            poly = patches.Polygon(polygon_pts, closed=True, color="#10b981", alpha=0.2, hatch="//")
+            ax.add_patch(poly)
 
-        # Draw vehicle trajectory slope line
-        ax.plot([t_lead_top, t_lead_bot], [y_top, y_bot], color="#00f0ff", linestyle="--", linewidth=2.0)
+            # Draw vehicle trajectory slope line
+            ax.plot([t_lead_top, t_lead_bot], [y_top, y_bot], color="#38bdf8", linestyle="--", linewidth=2.0)
 
-    # Current Simulation Time Vertical Line
-    curr_t_mod = telem.corridor_time_s % total_time_span
-    ax.axvline(curr_t_mod, color="#ffffff", linestyle="-", linewidth=2.5, alpha=0.9, label=f"Current Time: {telem.corridor_time_s:.1f}s")
+        # Current Simulation Time Vertical Line
+        curr_t_mod = telem.corridor_time_s % total_time_span
+        ax.axvline(curr_t_mod, color="#ffffff", linestyle="-", linewidth=2.5, alpha=0.9, label=f"Current Time: {telem.corridor_time_s:.1f}s")
 
-    # Styling
-    ax.set_xlim(0, total_time_span)
-    ax.set_ylim(-100, y_top + 100)
-    ax.set_yticks([j_coords["J3"], j_coords["J2"], j_coords["J1"]])
-    ax.set_yticklabels([j_names["J3"], j_names["J2"], j_names["J1"]], color="#ffffff", fontsize=11, fontweight="bold")
-    ax.set_xlabel("Corridor Time (seconds) — 2 Synchronized Cycles", color="#94a3b8", fontsize=11, fontweight="bold")
-    ax.set_ylabel("Arterial Distance (meters)", color="#94a3b8", fontsize=11, fontweight="bold")
-    ax.tick_params(colors="#94a3b8", labelsize=10)
-    ax.grid(True, color="rgba(255,255,255,0.08)", linestyle=":")
+        # Styling
+        ax.set_xlim(0, total_time_span)
+        ax.set_ylim(-100, y_top + 100)
+        ax.set_yticks([j_coords["J3"], j_coords["J2"], j_coords["J1"]])
+        ax.set_yticklabels([j_names["J3"], j_names["J2"], j_names["J1"]], color="#ffffff", fontsize=11, fontweight="bold")
+        ax.set_xlabel("Corridor Time (seconds) — 2 Synchronized Cycles", color="#94a3b8", fontsize=11, fontweight="bold")
+        ax.set_ylabel("Arterial Distance (meters)", color="#94a3b8", fontsize=11, fontweight="bold")
+        ax.tick_params(colors="#94a3b8", labelsize=10)
+        ax.grid(True, color="#334155", linestyle=":", alpha=0.6)
 
-    st.pyplot(fig)
-    plt.close(fig)
+        st.pyplot(fig)
+        plt.close(fig)
+    except Exception as err:
+        st.warning(f"Time-Space Diagram visualization standby: {err}")
 
     st.markdown("#### 🚦 Synchronized Corridor Junction Status Badges")
     c1, c2, c3 = st.columns(3)
