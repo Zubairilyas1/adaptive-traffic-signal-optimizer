@@ -200,11 +200,12 @@ with deck_right:
 
     st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
-    c_act1, c_act2 = st.columns(2)
-    with c_act1:
-        run_batch = st.button("⚡ Run Batch Analysis & Plan", type="primary", use_container_width=True)
-    with c_act2:
-        run_live = st.button("🔴 Launch Live Stream Console", disabled=not is_live_mode, use_container_width=True)
+    if is_live_mode:
+        run_live = st.button("🔴 Launch Live Stream Console", type="primary", use_container_width=True)
+        run_batch = False
+    else:
+        run_batch = st.button("⚡ Run Video Analysis & Generate Plan", type="primary", use_container_width=True)
+        run_live = False
 
 # -------------------------------------------------------------
 # LIVE STREAM OPERATOR CONSOLE (Real-Time Edge Mode)
