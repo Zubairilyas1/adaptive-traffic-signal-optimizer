@@ -42,7 +42,29 @@ render_header(
 
 counts = st.session_state.get("counts")
 if counts is None:
-    st.info("No video counts loaded yet. Run analysis on **1 · Intersection Analysis** first to produce counts.")
+    st.markdown("""
+    <div style="background: #131c2e; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 28px; text-align: center; margin: 16px 0 24px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div style="font-size: 2.2rem; margin-bottom: 10px;">🚦</div>
+        <div style="font-size: 1.3rem; font-weight: 800; color: #ffffff; margin-bottom: 8px;">Explore Adaptive Signal Timing Optimization</div>
+        <div style="font-size: 0.92rem; color: #94a3b8; max-width: 620px; margin: 0 auto 20px auto; line-height: 1.5;">
+            Compare pre-timed municipal baseline signal plans against our dual-regime adaptive controller.
+            Inspect Webster three-term delay models, PCU saturation curves, and real-time green allocations.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c_btn1, c_btn2, c_btn3 = st.columns([1, 2, 1])
+    with c_btn2:
+        if st.button("⚡ Load Benchmark Intersection Plan (Demo)", type="primary", use_container_width=True):
+            from app.components import video
+            from app.components.roi_editor import default_rois
+            rois = default_rois()
+            syn_counts, syn_keyframes = video.run_synthetic(rois)
+            st.session_state["counts"] = syn_counts
+            st.session_state["keyframes"] = syn_keyframes
+            st.rerun()
+        if st.button("← Go to 1 · Intersection Analysis Console", use_container_width=True):
+            st.switch_page("pages/1_Intersection_Analysis.py")
     st.stop()
 
 intersection = get_intersection(st.session_state["intersection_path"])

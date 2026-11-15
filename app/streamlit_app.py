@@ -20,7 +20,7 @@ import streamlit as st
 
 from app.components.cards import show_disclaimer
 from app.components.state import init_state
-from app.components.theme import apply_theme, render_header
+from app.components.theme import apply_theme, render_header, render_kpi_grid
 from app.utils import demo_video_path, list_annotated_videos, list_intersections, list_sample_clips
 from src import config
 from src.decision.intersection import load_intersection
@@ -53,24 +53,53 @@ with st.sidebar:
 # Executive Operations Header
 best_exists = config.BEST_WEIGHTS.exists()
 status_chips = [
-    ("DETECTOR: 7-CLASS FINE-TUNED (mAP 0.944)" if best_exists else "DETECTOR: COCO BASELINE", "chip-green"),
-    ("ACTUATOR: CLOSED-LOOP REAL-TIME", "chip-blue"),
+    ("DETECTOR: 7-CLASS FINE-TUNED" if best_exists else "DETECTOR: COCO BASELINE", "chip-green"),
+    ("ACTUATOR: CLOSED-LOOP NEMA TS2", "chip-blue"),
     ("CALIBRATION: IPM 4-POINT HOMOGRAPHY", "chip-amber"),
-    ("REGIME: DUAL-REGIME ANTI-SPILLBACK", "chip-green"),
+    ("COORDINATION: 3-JUNCTION GREEN WAVE", "chip-green"),
 ]
 
 render_header(
     title="OptiFlow ITS · Adaptive Signal Timing Orchestrator",
-    subtitle="Autonomous Video-Actuated Traffic Signal Control & Passenger Car Unit (PCU) Optimization",
+    subtitle="Edge-Native Computer Vision Traffic Perception, NEMA TS2 Closed-Loop Actuation, & Green-Wave Arterial Coordination",
     chips=status_chips,
 )
 
-# Core Telemetry KPI Strip
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-kpi1.metric("Tracked Classes", str(len(config.TARGET_CLASS_NAMES)), help="Car, Motorcycle, Rickshaw, Van, Bus, Truck, Tractor")
-kpi2.metric("Detection mAP@0.5", "0.944" if best_exists else "0.727", help="Fine-tuned YOLOv8n validation accuracy")
-kpi3.metric("Actuation Precision", "1.0 s", help="Second-by-second dynamic gap-out and dilemma zone safety checks")
-kpi4.metric("Control Regimes", "3 Regimes", help="Regime 1: Webster, Regime 2: Capacity Stretch, Regime 3: Spillback Gating")
+# Core Telemetry KPI Strip (Responsive Auto-Fit Grid)
+render_kpi_grid([
+    {
+        "label": "Tracked Classes",
+        "value": f"{len(config.TARGET_CLASS_NAMES)} Types",
+        "delta": "Car, Bike, Bus, Rickshaw, Truck",
+        "delta_positive": True,
+        "icon": "🚗",
+        "help": "Full IRC:106 heterogeneous vehicle classes",
+    },
+    {
+        "label": "Detection mAP@0.5",
+        "value": "0.944" if best_exists else "0.727",
+        "delta": "+0.217 vs COCO Baseline",
+        "delta_positive": True,
+        "icon": "🎯",
+        "help": "Fine-tuned YOLOv8n validation accuracy",
+    },
+    {
+        "label": "Actuation Precision",
+        "value": "1.0 s",
+        "delta": "Second-by-Second Closed-Loop",
+        "delta_positive": True,
+        "icon": "⏱️",
+        "help": "NEMA TS2 dual-ring clearance interlock frequency",
+    },
+    {
+        "label": "Control Regimes",
+        "value": "3 Regimes",
+        "delta": "Webster + Gating + Preemption",
+        "delta_positive": True,
+        "icon": "🛡️",
+        "help": "Regime 1: Webster, Regime 2: Capacity Stretch, Regime 3: Spillback Gating",
+    },
+])
 
 st.divider()
 
@@ -116,17 +145,24 @@ tab_demo, tab_arch, tab_benchmarks = st.tabs([
 
 with tab_demo:
     annotated = list_annotated_videos()
+    video_loaded = False
     if annotated:
         which = st.selectbox("Select Annotated Inspection Video", [p.name for p in annotated], key="home_ann_select")
-        chosen = next(p for p in annotated if p.name == which)
-        st.video(str(chosen))
-        st.caption(f"Inspection video: `{chosen.name}` with live 3-aspect signal lights and AI decision ticker.")
-    else:
+        chosen = next((p for p in annotated if p.name == which), None)
+        if chosen and chosen.exists():
+            st.video(str(chosen))
+            st.caption(f"Inspection video: `{chosen.name}` with live 3-aspect signal lights and AI decision ticker.")
+            video_loaded = True
+
+    if not video_loaded:
         demo = demo_video_path()
-        if demo is not None:
+        if demo is not None and demo.exists():
             st.video(str(demo))
-        else:
-            st.info("No pre-rendered demonstration video found. Run analysis on 1 · Intersection Analysis to generate one.")
+            st.caption("Benchmark demonstration clip with real-time HUD telemetry overlay.")
+            video_loaded = True
+
+    if not video_loaded:
+        st.info("💡 **Ready to run live inspection.** Navigate to **1 · Intersection Analysis** to run real-time YOLOv8 detection or upload footage.")
 
 with tab_arch:
     st.markdown(
