@@ -13,6 +13,13 @@ from src.rl.live_policy import (
     LivePPOController,
     LivePolicyActuator,
 )
+from src.rl.nema_agent import (
+    NEMAAction,
+    NEMAPolicyDecision,
+    NEMAObservationAssembler,
+    NEMASafetyActionMask,
+    NEMADualRingAgent,
+)
 
 __all__ = [
     "FixedTimeController",
@@ -26,4 +33,9 @@ __all__ = [
     "assemble_observation",
     "LivePPOController",
     "LivePolicyActuator",
+    "NEMAAction",
+    "NEMAPolicyDecision",
+    "NEMAObservationAssembler",
+    "NEMASafetyActionMask",
+    "NEMADualRingAgent",
 ]
