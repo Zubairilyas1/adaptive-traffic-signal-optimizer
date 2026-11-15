@@ -13,7 +13,7 @@ import pandas as pd
 import streamlit as st
 
 from app.components.state import init_state
-from app.components.theme import apply_theme, render_breadcrumb, render_header
+from app.components.theme import apply_theme, render_breadcrumb, render_header, render_kpi_grid
 from src.decision.nema_dual_ring import (
     NEMADecision,
     NEMADualRingController,
@@ -52,17 +52,41 @@ if "nema_agent" not in st.session_state:
 agent: NEMADualRingAgent = st.session_state["nema_agent"]
 
 # ---------------------------------------------------------------------------
-# Top Executive Metrics Row
+# Top Executive Metrics Row (Responsive Auto-Fit Grid)
 # ---------------------------------------------------------------------------
 curr_dec = agent.controller
-m1, m2, m3, m4 = st.columns(4)
+stage_label = "Stage 1 (Major N-S)" if curr_dec.current_stage == RingBarrierStage.STAGE_1_MAJOR_NS else "Stage 2 (Minor E-W)"
 
-stage_label = "STAGE 1: MAJOR (N-S)" if curr_dec.current_stage == RingBarrierStage.STAGE_1_MAJOR_NS else "STAGE 2: MINOR (E-W)"
-m1.metric("Barrier Stage", stage_label, delta="Coordinated" if curr_dec.ring1_phase in (2, 4) else "Protected Lefts")
-m2.metric(f"Ring 1 Active Phase", f"Phase {curr_dec.ring1_phase.value} ({curr_dec.ring1_interval.value})", f"{curr_dec.ring1_elapsed_s:.1f}s elapsed")
-m3.metric(f"Ring 2 Active Phase", f"Phase {curr_dec.ring2_phase.value} ({curr_dec.ring2_interval.value})", f"{curr_dec.ring2_elapsed_s:.1f}s elapsed")
-sync_status = "HOLDING AT BARRIER" if curr_dec.ring1_interval == PhaseInterval.RED_HOLD or curr_dec.ring2_interval == PhaseInterval.RED_HOLD else "FLOWING"
-m4.metric("Barrier Sync State", sync_status, delta="Zero Conflict Lock")
+render_kpi_grid([
+    {
+        "label": "Barrier Stage",
+        "value": stage_label,
+        "delta": "Coordinated" if curr_dec.ring1_phase in (2, 4) else "Protected Lefts",
+        "delta_positive": True,
+        "icon": "🛡️",
+    },
+    {
+        "label": "Ring 1 Active Movement",
+        "value": f"Phase {curr_dec.ring1_phase.value} · {curr_dec.ring1_interval.value}",
+        "delta": f"{curr_dec.ring1_elapsed_s:.1f}s Elapsed",
+        "delta_positive": True,
+        "icon": "🔵",
+    },
+    {
+        "label": "Ring 2 Active Movement",
+        "value": f"Phase {curr_dec.ring2_phase.value} · {curr_dec.ring2_interval.value}",
+        "delta": f"{curr_dec.ring2_elapsed_s:.1f}s Elapsed",
+        "delta_positive": True,
+        "icon": "🟣",
+    },
+    {
+        "label": "Barrier Synchronization",
+        "value": "Holding at Barrier" if curr_dec.ring1_interval == PhaseInterval.RED_HOLD or curr_dec.ring2_interval == PhaseInterval.RED_HOLD else "Concurrent Flow",
+        "delta": "Zero-Conflict Lock",
+        "delta_positive": True,
+        "icon": "🔒",
+    },
+])
 
 st.markdown("---")
 
@@ -267,13 +291,15 @@ with tab_demand:
         )
 
     with c_pre2:
-        if st.button("🚨 TRIGGER EMERGENCY PREEMPTION", use_container_width=True):
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("🚨 Dispatch Priority", type="primary", use_container_width=True):
             st.session_state["nema_preemption"] = target_p[0]
-            st.warning(f"🚨 Emergency Preemption Priority Called for Phase {target_p[0]}!")
+            st.warning(f"🚨 Preemption Priority Called for Phase {target_p[0]}!")
             st.rerun()
 
     with c_pre3:
-        if st.button("✅ Clear Preemption State", use_container_width=True):
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("✅ Clear Preemption", use_container_width=True):
             st.session_state["nema_preemption"] = None
             st.success("Preemption cleared. Resuming normal dual-ring actuation.")
             st.rerun()
