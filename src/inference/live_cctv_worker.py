@@ -562,7 +562,7 @@ class LiveCCTVWorker:
             (0, 220, 0)
             if decision.ring1_interval == PhaseInterval.GREEN
             else (0, 220, 220)
-            if decision.ring1_interval == PhaseInterval.YELLOW
+            if decision.ring1_interval == PhaseInterval.YELLOW_CHANGE
             else (0, 0, 220)
         )
         r1_text = f"RING 1: {decision.ring1_phase.name} [{decision.ring1_interval.value}] ({decision.ring1_elapsed_s:.1f}s)"
@@ -582,7 +582,7 @@ class LiveCCTVWorker:
             (0, 220, 0)
             if decision.ring2_interval == PhaseInterval.GREEN
             else (0, 220, 220)
-            if decision.ring2_interval == PhaseInterval.YELLOW
+            if decision.ring2_interval == PhaseInterval.YELLOW_CHANGE
             else (0, 0, 220)
         )
         r2_text = f"RING 2: {decision.ring2_phase.name} [{decision.ring2_interval.value}] ({decision.ring2_elapsed_s:.1f}s)"
