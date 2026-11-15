@@ -119,11 +119,21 @@ with tab_viz:
         st.markdown("**Ring 1 Sequential Loop:** `Phase 1 (SB Left)` ➔ `Phase 2 (NB Thru)` ❚❚ **[BARRIER]** ❚❚ `Phase 3 (WB Left)` ➔ `Phase 4 (EB Thru)`")
 
     with col_bar:
-        st.markdown("<div style='text-align: center; padding-top: 40px;'>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; padding-top: 36px;'>", unsafe_allow_html=True)
         if curr_dec.ring1_interval == PhaseInterval.RED_HOLD or curr_dec.ring2_interval == PhaseInterval.RED_HOLD:
-            st.error("❚❚<br>BARRIER<br>LOCKED")
+            st.markdown(
+                """<div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 6px; text-align: center; color: #fca5a5; font-size: 0.8rem; font-weight: 700; line-height: 1.4;">
+                ❚❚<br>BARRIER<br>LOCKED
+                </div>""",
+                unsafe_allow_html=True,
+            )
         else:
-            st.success("❚❚<br>STAGE<br>ACTIVE")
+            st.markdown(
+                """<div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 8px; padding: 12px 6px; text-align: center; color: #6ee7b7; font-size: 0.8rem; font-weight: 700; line-height: 1.4;">
+                ❚❚<br>STAGE<br>ACTIVE
+                </div>""",
+                unsafe_allow_html=True,
+            )
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_r2:
