@@ -44,20 +44,20 @@ def render_executive_kpi_card_row(cards: list[dict]) -> None:
         icon_color = c.get("icon_color", "#00f0ff")
 
         card_html = f"""
-        <div style="background: #0d1424; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.4); margin-bottom: 12px;">
-            <div style="background: #141f36; padding: 7px 14px; font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.25); margin-bottom: 12px; min-width: 140px;">
+            <div style="background: #1f2937; padding: 8px 14px; font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 {header}
             </div>
-            <div style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 1.65rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
+            <div style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="min-width: 0; flex: 1;">
+                    <div style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 1.55rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         {val}
                     </div>
-                    <div style="font-size: 0.74rem; font-weight: 600; color: {delta_color}; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                    <div style="font-size: 0.72rem; font-weight: 600; color: {delta_color}; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         {delta}
                     </div>
                 </div>
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: {icon_bg}; border: 1px solid {icon_color}33; display: flex; align-items: center; justify-content: center; font-size: 1.15rem;">
+                <div style="flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; background: {icon_bg}; border: 1px solid {icon_color}33; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
                     {icon}
                 </div>
             </div>
