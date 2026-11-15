@@ -1,5 +1,11 @@
 """SUMO simulation: network building, environment, injection, co-simulation, and control."""
 
+from src.sumo.corridor_network import (
+    ArterialCorridorConfig,
+    CorridorJunctionSpec,
+    default_corridor_junctions,
+    generate_corridor_network,
+)
 from src.sumo.nema_network import (
     DEFAULT_8PHASE_DEMAND,
     NEMA_8_MOVEMENTS,
@@ -47,4 +53,8 @@ __all__ = [
     "find_sumo_binary",
     "build_nema_tls_state_string",
     "build_nema_8phase_intersection",
+    "ArterialCorridorConfig",
+    "CorridorJunctionSpec",
+    "default_corridor_junctions",
+    "generate_corridor_network",
 ]
