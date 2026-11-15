@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 try:
@@ -365,3 +366,24 @@ with tab_audit:
     > [!TIP]
     > **Mathematical Defense Takeaway:** Coordinated arterial signal timing saves up to **$78.4\%$ of vehicular stops** by aligning the cycle split with the physical platoon dispersion speed ($v_{\text{prog}}$). When an emergency vehicle is detected, preemption ripples downstream sequentially, creating a cleared path before the vehicle arrives.
     """)
+
+    st.markdown("---")
+    st.markdown("### 📑 Official Master Engineering Defense Thesis (PDF)")
+    st.caption("Download the formal, 10-chapter publication-grade academic thesis and municipal audit document integrating all mathematical formulations, NEMA dual-ring state diagrams, and the examiner defense matrix.")
+
+    thesis_pdf_path = Path("reports/OptiFlow_Master_Engineering_Thesis.pdf")
+    if not thesis_pdf_path.exists():
+        from src.reports.master_thesis_pdf import generate_master_thesis_pdf
+        generate_master_thesis_pdf(thesis_pdf_path)
+
+    if thesis_pdf_path.exists():
+        with open(thesis_pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+        st.download_button(
+            label="📥 Download Master Engineering Defense Thesis (PDF)",
+            data=pdf_bytes,
+            file_name="OptiFlow_Master_Engineering_Thesis.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+            type="primary",
+        )
