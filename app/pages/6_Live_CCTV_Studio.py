@@ -14,7 +14,7 @@ import pandas as pd
 import streamlit as st
 
 from app.components.state import init_state
-from app.components.theme import apply_theme, render_breadcrumb, render_header
+from app.components.theme import apply_theme, render_breadcrumb, render_header, render_kpi_grid
 from src.decision.fail_safe import HealthState
 from src.inference.live_cctv_worker import (
     LiveCCTVWorker,
@@ -131,26 +131,56 @@ worker: Optional[LiveCCTVWorker] = st.session_state["cctv_worker"]
 is_streaming = worker is not None and worker._running
 
 # ---------------------------------------------------------------------------
-# Top Executive Stream Telemetry Bar
+# Top Executive Stream Telemetry Bar (Responsive Auto-Fit Grid)
 # ---------------------------------------------------------------------------
 if is_streaming and worker is not None:
     telem = worker.get_telemetry()
-    t1, t2, t3, t4, t5 = st.columns(5)
-
-    t1.metric("Capture FPS", f"{telem.stream_telemetry.capture_fps:.1f} FPS", "Zero Socket Lag")
-    t2.metric("Latency", f"{telem.stream_telemetry.frame_latency_ms:.1f} ms", "<30ms Freshness")
-    t3.metric("Drop Rate", f"{telem.stream_telemetry.drop_rate_pct:.1f}%", f"{telem.stream_telemetry.total_dropped_frames} dropped")
-    t4.metric("Inference FPS", f"{telem.fps_inference:.1f} FPS", f"{telem.active_vehicles_count} vehicles tracked")
-
-    health_label = "HEALTHY (LIVE AI)" if telem.health_state == HealthState.NORMAL else "FAILSAFE (FIXED)"
-    t5.metric("Watchdog Health", health_label, delta="Auto-Recovering" if telem.health_state == HealthState.NORMAL else "Feed Loss")
+    health_label = "Healthy (Live AI)" if telem.health_state == HealthState.NORMAL else "Fail-Safe (Fixed)"
+    render_kpi_grid([
+        {
+            "label": "Capture FPS",
+            "value": f"{telem.stream_telemetry.capture_fps:.1f} FPS",
+            "delta": "Zero Socket Lag",
+            "delta_positive": True,
+            "icon": "📹",
+        },
+        {
+            "label": "Frame Latency",
+            "value": f"{telem.stream_telemetry.frame_latency_ms:.1f} ms",
+            "delta": "<30ms Clamped Freshness",
+            "delta_positive": True,
+            "icon": "⚡",
+        },
+        {
+            "label": "Buffer Drop Rate",
+            "value": f"{telem.stream_telemetry.drop_rate_pct:.1f}%",
+            "delta": f"{telem.stream_telemetry.total_dropped_frames} Frames Dropped",
+            "delta_positive": False,
+            "icon": "🔄",
+        },
+        {
+            "label": "Inference FPS",
+            "value": f"{telem.fps_inference:.1f} FPS",
+            "delta": f"{telem.active_vehicles_count} Vehicles Tracked",
+            "delta_positive": True,
+            "icon": "🎯",
+        },
+        {
+            "label": "Watchdog Health",
+            "value": health_label,
+            "delta": "Auto-Supervised Feed",
+            "delta_positive": telem.health_state == HealthState.NORMAL,
+            "icon": "🛡️",
+        },
+    ])
 else:
-    t1, t2, t3, t4, t5 = st.columns(5)
-    t1.metric("Capture FPS", "0.0 FPS", "Standby")
-    t2.metric("Latency", "0.0 ms", "Offline")
-    t3.metric("Drop Rate", "0.0%", "Queue Empty")
-    t4.metric("Inference FPS", "0.0 FPS", "Idle")
-    t5.metric("Watchdog Health", "STANDBY", delta="Awaiting Start")
+    render_kpi_grid([
+        {"label": "Capture FPS", "value": "0.0 FPS", "delta": "Standby Mode", "delta_positive": True, "icon": "📹"},
+        {"label": "Frame Latency", "value": "0.0 ms", "delta": "Target: <30ms", "delta_positive": True, "icon": "⚡"},
+        {"label": "Buffer Drop Rate", "value": "0.0%", "delta": "Queue Ready (maxsize=1)", "delta_positive": True, "icon": "🔄"},
+        {"label": "Inference FPS", "value": "0.0 FPS", "delta": "YOLOv8 Edge Ingestion", "delta_positive": True, "icon": "🎯"},
+        {"label": "Watchdog Health", "value": "Standby", "delta": "Ready to Ingest", "delta_positive": True, "icon": "🛡️"},
+    ])
 
 st.markdown("---")
 

@@ -16,7 +16,7 @@ import pandas as pd
 import streamlit as st
 
 from app.components.state import init_state
-from app.components.theme import apply_theme, render_breadcrumb, render_header
+from app.components.theme import apply_theme, render_breadcrumb, render_header, render_kpi_grid
 from src.decision.corridor_coordinator import (
     CorridorCoordinator,
     CorridorTelemetry,
@@ -112,14 +112,45 @@ telem: CorridorTelemetry = coordinator.step(
 )
 
 # ---------------------------------------------------------------------------
-# Top Executive Corridor KPI Metrics
+# Top Executive Corridor KPI Metrics (Responsive Auto-Fit Grid)
 # ---------------------------------------------------------------------------
-m1, m2, m3, m4, m5 = st.columns(5)
-m1.metric("Common Cycle", f"{telem.common_cycle_s:.0f}s", f"Pos: {telem.cycle_elapsed_s:.1f}s")
-m2.metric("Progression Speed", f"{telem.progression_speed_kmh:.0f} km/h", "12.5 m/s Design")
-m3.metric("Bandwidth Efficiency", f"{telem.bandwidth_efficiency_pct:.1f}%", f"{telem.green_bandwidth_s:.1f}s Green Window")
-m4.metric("Stops Avoided", f"{telem.stops_avoided_pct:.1f}%", "Zero-Brake Platoon")
-m5.metric("Travel Time Savings", f"-{telem.delay_reduction_pct:.1f}%", "Arterial Velocity")
+render_kpi_grid([
+    {
+        "label": "Common Cycle",
+        "value": f"{telem.common_cycle_s:.0f}s",
+        "delta": f"Cycle Pos: {telem.cycle_elapsed_s:.1f}s",
+        "delta_positive": True,
+        "icon": "🔄",
+    },
+    {
+        "label": "Progression Speed",
+        "value": f"{telem.progression_speed_kmh:.0f} km/h",
+        "delta": "12.5 m/s Design Speed",
+        "delta_positive": True,
+        "icon": "🚗",
+    },
+    {
+        "label": "Bandwidth Efficiency",
+        "value": f"{telem.bandwidth_efficiency_pct:.1f}%",
+        "delta": f"{telem.green_bandwidth_s:.1f}s Green Window",
+        "delta_positive": True,
+        "icon": "🌊",
+    },
+    {
+        "label": "Stops Avoided",
+        "value": f"{telem.stops_avoided_pct:.1f}%",
+        "delta": "Zero-Brake Platoon",
+        "delta_positive": True,
+        "icon": "🛑",
+    },
+    {
+        "label": "Travel Time Savings",
+        "value": f"-{telem.delay_reduction_pct:.1f}%",
+        "delta": "Arterial Velocity Surge",
+        "delta_positive": True,
+        "icon": "⚡",
+    },
+])
 
 st.markdown("---")
 
@@ -371,8 +402,17 @@ with tab_audit:
     """)
 
     st.markdown("---")
-    st.markdown("### 📑 Official Master Engineering Defense Thesis (PDF)")
-    st.caption("Download the formal, 10-chapter publication-grade academic thesis and municipal audit document integrating all mathematical formulations, NEMA dual-ring state diagrams, and the examiner defense matrix.")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #131c2e 0%, #172338 100%); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 22px 26px; margin: 18px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-size: 1.25rem; font-weight: 800; color: #ffffff;">📑 Official Master Engineering Defense Thesis</div>
+            <span style="background: #2563eb; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em;">14 PAGES · CERTIFIED PDF</span>
+        </div>
+        <div style="font-size: 0.92rem; color: #94a3b8; line-height: 1.5; margin-bottom: 6px;">
+            Formal publication-grade academic defense whitepaper compiling all mathematical derivations (Webster, HCM PCU, Homography IPM, NEMA TS2 Dual-Ring, Robertson's Platoon Dispersion 1969), system architectures, paired simulation benchmarks, and the 12-question Examiner Counter-Attack Defense Matrix.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     thesis_pdf_path = Path("reports/OptiFlow_Master_Engineering_Thesis.pdf")
     if not thesis_pdf_path.exists():
@@ -383,7 +423,7 @@ with tab_audit:
         with open(thesis_pdf_path, "rb") as f:
             pdf_bytes = f.read()
         st.download_button(
-            label="📥 Download Master Engineering Defense Thesis (PDF)",
+            label="📥 Download Certified Master Engineering Defense Thesis (PDF)",
             data=pdf_bytes,
             file_name="OptiFlow_Master_Engineering_Thesis.pdf",
             mime="application/pdf",
