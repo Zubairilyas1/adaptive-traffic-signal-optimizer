@@ -9,6 +9,8 @@ Key Features:
 
 from __future__ import annotations
 
+from typing import Any, List, Optional, Tuple
+
 import streamlit as st
 
 
@@ -213,11 +215,22 @@ def render_breadcrumb(path: str = "HOME > TRAFFIC OPERATIONS CENTER") -> None:
     st.markdown(html, unsafe_allow_html=True)
 
 
-def render_header(title: str, subtitle: str, chips: list[tuple[str, str]] | None = None) -> None:
+def render_header(
+    title: str,
+    subtitle: str,
+    chips: Optional[List[Tuple[str, str]]] = None,
+    badge_label: Optional[str] = None,
+    badge_color: str = "teal",
+    **kwargs: Any,
+) -> None:
     """Render an authoritative, clean command-center header banner."""
+    resolved_chips: List[Tuple[str, str]] = list(chips) if chips else []
+    if badge_label:
+        resolved_chips.append((badge_label, f"chip-{badge_color}"))
+
     chips_html = ""
-    if chips:
-        chips_spans = [f'<span class="tmc-chip {style_class}">{text}</span>' for text, style_class in chips]
+    if resolved_chips:
+        chips_spans = [f'<span class="tmc-chip {style_class}">{text}</span>' for text, style_class in resolved_chips]
         chips_html = f'<div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">{" ".join(chips_spans)}</div>'
 
     html = f"""
